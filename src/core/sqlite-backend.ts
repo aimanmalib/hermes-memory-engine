@@ -5,13 +5,22 @@ import type {
   SearchOptions,
   AgentId,
 } from "./types.js";
+import type Database from "better-sqlite3";
+
+interface Row {
+  id: string;
+  content: string;
+  agent: string;
+  created_at: string;
+  updated_at: string;
+}
 
 /**
  * SQLite storage backend using better-sqlite3.
  * Provides fast indexed queries for large memory collections.
  */
 export class SQLiteBackend implements StorageBackend {
-  private db: any; // better-sqlite3 Database
+  private db!: Database.Database;
   private dbPath: string;
 
   constructor(dbPath: string) {
@@ -130,7 +139,7 @@ export class SQLiteBackend implements StorageBackend {
   async get(id: MemoryId): Promise<MemoryEntry | null> {
     const row = this.db
       .prepare("SELECT * FROM memories WHERE id = ?")
-      .get(id);
+      .get(id) as Row | undefined;
     if (!row) return null;
     return this.rowToEntry(row);
   }
@@ -188,22 +197,22 @@ export class SQLiteBackend implements StorageBackend {
       params.push(options.offset);
     }
 
-    const rows = this.db.prepare(sql).all(...params);
-    return Promise.all(rows.map((row: any) => this.rowToEntry(row)));
+    const rows = this.db.prepare(sql).all(...params) as Row[];
+    return Promise.all(rows.map((row) => this.rowToEntry(row)));
   }
 
   async listByAgent(agent: AgentId): Promise<MemoryEntry[]> {
     const rows = this.db
       .prepare("SELECT * FROM memories WHERE agent = ? ORDER BY created_at DESC")
-      .all(agent);
-    return Promise.all(rows.map((row: any) => this.rowToEntry(row)));
+      .all(agent) as Row[];
+    return Promise.all(rows.map((row) => this.rowToEntry(row)));
   }
 
   async listAll(): Promise<MemoryEntry[]> {
     const rows = this.db
       .prepare("SELECT * FROM memories ORDER BY created_at DESC")
-      .all();
-    return Promise.all(rows.map((row: any) => this.rowToEntry(row)));
+      .all() as Row[];
+    return Promise.all(rows.map((row) => this.rowToEntry(row)));
   }
 
   async close(): Promise<void> {
@@ -212,15 +221,15 @@ export class SQLiteBackend implements StorageBackend {
     }
   }
 
-  private async rowToEntry(row: any): Promise<MemoryEntry> {
-    const tags = this.db
+  private async rowToEntry(row: Row): Promise<MemoryEntry> {
+    const tags = (this.db
       .prepare("SELECT tag FROM memory_tags WHERE memory_id = ?")
-      .all(row.id)
-      .map((r: any) => r.tag);
+      .all(row.id) as Array<{ tag: string }>)
+      .map((r) => r.tag);
 
     const metaRows = this.db
       .prepare("SELECT key, value FROM memory_metadata WHERE memory_id = ?")
-      .all(row.id);
+      .all(row.id) as Array<{ key: string; value: string }>;
     const metadata: Record<string, unknown> = {};
     for (const m of metaRows) {
       try {
@@ -234,8 +243,8 @@ export class SQLiteBackend implements StorageBackend {
       .prepare(
         "SELECT target_id, type FROM memory_relations WHERE source_id = ?"
       )
-      .all(row.id);
-    const relations = relRows.map((r: any) => ({
+      .all(row.id) as Array<{ target_id: string; type: string }>;
+    const relations = relRows.map((r) => ({
       targetId: r.target_id,
       type: r.type as MemoryEntry["relations"][number]["type"],
     }));

@@ -4,7 +4,6 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { FileBackend } from "../src/core/file-backend.js";
 import { MemoryStore } from "../src/core/memory-store.js";
-import type { MemoryEntry } from "../src/core/types.js";
 
 describe("FileBackend", () => {
   let tmpDir: string;
