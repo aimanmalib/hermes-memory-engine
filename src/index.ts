@@ -13,7 +13,18 @@ export { AgentContext } from "./agents/agent-context.js";
 export { SharedMemory } from "./agents/shared-memory.js";
 export { GitHubGistBackend } from "./sync/gist-backend.js";
 export { S3Backend } from "./sync/s3-backend.js";
-export { HttpBackend } from "./sync/http-backend.js";
+export { OpenAIAdapter, type OpenAIAdapterConfig, createOpenAIAdapter } from "./integrations/openai.js";
+export { ClaudeAdapter, type ClaudeAdapterConfig, createClaudeAdapter } from "./integrations/claude.js";
+
+// Hermes Agent integration (Phase 5.1)
+export {
+  HermesMemoryAdapter,
+  createHermesAdapter,
+  type HermesAdapterConfig,
+  type HermesImportResult,
+  type HermesTarget,
+} from "./integrations/hermes.js";
+
 export type {
   MemoryEntry,
   MemoryId,
