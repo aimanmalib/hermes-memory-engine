@@ -160,7 +160,11 @@ export class HermesMemoryAdapter {
       const raw = await this.readHermesRaw(target);
       const entries = this.parseHermesMemory(raw, target);
 
+      let imported = entries.length;
+      let skipped = 0;
+
       if (store && entries.length > 0) {
+        imported = 0;
         // Use the store's create path (avoids direct backend)
         for (const entry of entries) {
           try {
@@ -171,16 +175,21 @@ export class HermesMemoryAdapter {
               metadata: entry.metadata,
               relations: entry.relations,
             });
+            imported++;
           } catch (e: any) {
             // Skip duplicates (MemoryStore should dedupe or throw on exact match)
-            if (!/duplicate|exists/i.test(String(e))) throw e;
+            if (/duplicate|exists/i.test(String(e))) {
+              skipped++;
+            } else {
+              throw e;
+            }
           }
         }
       }
 
       results.push({
-        imported: entries.length,
-        skipped: 0, // TODO: detect actual dups in future
+        imported,
+        skipped,
         target,
         entries,
       });
