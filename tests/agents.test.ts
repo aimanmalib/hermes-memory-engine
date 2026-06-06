@@ -162,4 +162,85 @@ describe("SharedMemory", () => {
     const perms = shared.listPermissions();
     expect(perms.length).toBe(2);
   });
+
+  it("revokes permissions", () => {
+    shared.grant("agent-1", "write");
+    expect(shared.hasPermission("agent-1", "write")).toBe(true);
+    shared.revoke("agent-1");
+    expect(shared.hasPermission("agent-1", "write")).toBe(false);
+  });
+
+  it("returns false for unknown agent permission check", () => {
+    expect(shared.hasPermission("unknown", "read")).toBe(false);
+  });
+
+  it("reads shared memories with permission", async () => {
+    shared.grant("agent-1", "read");
+    await store.create({ content: "shared fact", tags: ["shared"], agent: "shared" });
+    const results = await shared.read("agent-1");
+    expect(results.length).toBe(1);
+    expect(results[0].content).toBe("shared fact");
+  });
+
+  it("blocks unauthorized reads", async () => {
+    await expect(shared.read("agent-1")).rejects.toThrow("does not have read permission");
+  });
+
+  it("reads shared memories with query filter", async () => {
+    shared.grant("agent-1", "read");
+    await store.create({ content: "typescript is great", tags: ["code"], agent: "shared" });
+    await store.create({ content: "python is also great", tags: ["code"], agent: "shared" });
+    const results = await shared.read("agent-1", "typescript");
+    expect(results.length).toBe(1);
+  });
+
+  it("updates shared memories with write permission", async () => {
+    shared.grant("agent-1", "write");
+    const mem = await shared.write("agent-1", "original content");
+    const updated = await shared.update("agent-1", mem.id, "updated content");
+    expect(updated).not.toBeNull();
+    expect(updated!.content).toBe("updated content");
+    expect(updated!.metadata.updatedBy).toBe("agent-1");
+  });
+
+  it("blocks unauthorized updates", async () => {
+    shared.grant("agent-1", "read");
+    await expect(shared.update("agent-1", "fake-id", "new content")).rejects.toThrow(
+      "does not have write permission"
+    );
+  });
+
+  it("links two shared memories", async () => {
+    shared.grant("agent-1", "write");
+    const mem1 = await shared.write("agent-1", "memory one");
+    const mem2 = await shared.write("agent-1", "memory two");
+    await shared.link("agent-1", mem1.id, mem2.id, "related_to");
+
+    const retrieved = await store.get(mem1.id);
+    expect(retrieved!.relations).toHaveLength(1);
+    expect(retrieved!.relations[0].targetId).toBe(mem2.id);
+    expect(retrieved!.relations[0].type).toBe("related_to");
+  });
+
+  it("blocks unauthorized links", async () => {
+    shared.grant("agent-1", "read");
+    await expect(shared.link("agent-1", "a", "b", "related_to")).rejects.toThrow(
+      "does not have write permission"
+    );
+  });
+
+  it("link throws when source memory not found", async () => {
+    shared.grant("agent-1", "write");
+    await expect(shared.link("agent-1", "nonexistent", "also-fake", "related_to")).rejects.toThrow(
+      "not found"
+    );
+  });
+
+  it("write with tags and metadata", async () => {
+    shared.grant("agent-1", "write");
+    const mem = await shared.write("agent-1", "tagged memory", ["important", "shared"], { source: "test" });
+    expect(mem.tags).toContain("important");
+    expect(mem.metadata.source).toBe("test");
+    expect(mem.metadata.writtenBy).toBe("agent-1");
+  });
 });
