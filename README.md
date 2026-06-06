@@ -1,9 +1,9 @@
 # 🧠 Hermes Memory Engine
 
 [![CI](https://github.com/aimanmalib/hermes-memory-engine/actions/workflows/ci.yml/badge.svg)](https://github.com/aimanmalib/hermes-memory-engine/actions)
-[![npm](https://img.shields.io/npm/v/@aimanmalib/hermes-memory-engine)](https://www.npmjs.com/package/@aimanmalib/hermes-memory-engine)
+[![npm](https://img.shields.io/npm/v/hermes-memory-engine)](https://www.npmjs.com/package/hermes-memory-engine)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Tests](https://img.shields.io/badge/tests-104%20passing-brightgreen)](https://github.com/aimanmalib/hermes-memory-engine/actions)
+[![Tests](https://img.shields.io/badge/tests-173%20passing-brightgreen)](https://github.com/aimanmalib/hermes-memory-engine/actions)
 
 **A production-grade, markdown-based AI memory system for agents.** Multi-agent support, LLM-powered compression, cloud sync, encryption, and versioning — all in a single npm package.
 
@@ -22,7 +22,7 @@ AI agents need persistent, searchable, structured memory. Existing solutions are
 ## Installation
 
 ```bash
-npm install @aimanmalib/hermes-memory-engine
+npm install hermes-memory-engine
 ```
 
 Or use the CLI directly:
@@ -66,7 +66,7 @@ import {
   MemoryStore,
   FileBackend,
   SQLiteBackend,
-} from "@aimanmalib/hermes-memory-engine";
+} from "hermes-memory-engine";
 
 // File-based storage (human-readable .md files)
 const store = new MemoryStore(new FileBackend("./my-memories"));
@@ -95,7 +95,7 @@ await store.list({ agent: "my-agent", limit: 20 });
 ### SQLite Backend (for production)
 
 ```typescript
-import { MemoryStore, SQLiteBackend } from "@aimanmalib/hermes-memory-engine";
+import { MemoryStore, SQLiteBackend } from "hermes-memory-engine";
 
 const store = new MemoryStore(new SQLiteBackend("./memories.db"));
 await store.init();
@@ -114,7 +114,7 @@ const memory = await store.create({
 Link memories with typed relationships — `related_to`, `derived_from`, `supersedes`:
 
 ```typescript
-import { MemoryGraph } from "@aimanmalib/hermes-memory-engine";
+import { MemoryGraph } from "hermes-memory-engine";
 
 const graph = new MemoryGraph();
 graph.addNode(memoryA);
@@ -135,7 +135,7 @@ import {
   AgentRegistry,
   AgentContext,
   SharedMemory,
-} from "@aimanmalib/hermes-memory-engine";
+} from "hermes-memory-engine";
 
 // Register agents with isolated namespaces
 const registry = new AgentRegistry(store);
@@ -159,7 +159,7 @@ shared.share(memory.id, "agent-2", "read");
 import {
   MemoryCompressor,
   OpenAIAdapter,
-} from "@aimanmalib/hermes-memory-engine";
+} from "hermes-memory-engine";
 
 const llm = new OpenAIAdapter({ apiKey: process.env.OPENAI_API_KEY });
 const compressor = new MemoryCompressor(llm);
@@ -178,7 +178,7 @@ import {
   MemorySync,
   GitHubGistBackend,
   S3Backend,
-} from "@aimanmalib/hermes-memory-engine";
+} from "hermes-memory-engine";
 
 // Sync to GitHub Gist
 const gistSync = new MemorySync(store, new GitHubGistBackend({ token: "ghp_..." }));
@@ -197,7 +197,7 @@ await s3Sync.sync({ strategy: "merge" }); // local | remote | merge | manual
 ### Encryption
 
 ```typescript
-import { MemoryEncryption } from "@aimanmalib/hermes-memory-engine";
+import { MemoryEncryption } from "hermes-memory-engine";
 
 const encryption = new MemoryEncryption("my-secure-passphrase");
 
@@ -212,7 +212,7 @@ const encryptedBatch = encryption.encryptBatch(memories);
 ### Versioning
 
 ```typescript
-import { MemoryVersioning } from "@aimanmalib/hermes-memory-engine";
+import { MemoryVersioning } from "hermes-memory-engine";
 
 const versioning = new MemoryVersioning({ maxSnapshots: 50 });
 
@@ -237,7 +237,7 @@ Dual-purpose: use as LLM provider for compression OR as tool-calling schemas for
 import {
   OpenAIAdapter,
   ClaudeAdapter,
-} from "@aimanmalib/hermes-memory-engine";
+} from "hermes-memory-engine";
 
 // As LLM provider (for compression)
 const openai = new OpenAIAdapter({ apiKey: process.env.OPENAI_API_KEY });
@@ -258,7 +258,7 @@ Same API for `ClaudeAdapter` (Anthropic Messages API).
 Read/write Hermes Agent's native `§`-format memory files:
 
 ```typescript
-import { HermesMemoryAdapter } from "@aimanmalib/hermes-memory-engine";
+import { HermesMemoryAdapter } from "hermes-memory-engine";
 
 const hermes = new HermesMemoryAdapter();
 
