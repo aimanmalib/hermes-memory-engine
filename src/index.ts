@@ -2,6 +2,9 @@ export { MemoryStore } from "./core/memory-store.js";
 export { MemoryGraph } from "./core/memory-graph.js";
 export { FileBackend } from "./core/file-backend.js";
 export { SQLiteBackend } from "./core/sqlite-backend.js";
+export { MemoryCompressor } from "./core/memory-compress.js";
+export { MemorySearch } from "./core/memory-search.js";
+export { MemoryConsolidation } from "./core/memory-consolidation.js";
 export { AgentRegistry } from "./agents/agent-registry.js";
 export { AgentContext } from "./agents/agent-context.js";
 export { SharedMemory } from "./agents/shared-memory.js";
@@ -21,3 +24,6 @@ export type {
 export type { AgentConfig, AgentInstance } from "./agents/agent-registry.js";
 export type { SerializedContext } from "./agents/agent-context.js";
 export type { Permission, AgentPermission } from "./agents/shared-memory.js";
+export type { LLMProvider, CompressOptions } from "./core/memory-compress.js";
+export type { ScoredResult, SearchEngineOptions } from "./core/memory-search.js";
+export type { RetentionPolicy, ConsolidationResult } from "./core/memory-consolidation.js";
