@@ -6,56 +6,60 @@ on:
   pull_request:
     branches: [main]
 
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   build:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
-        node-version: [20, 22]
+        # The dev toolchain (vitest 5) needs Node >= 22.12, so Node 20 only
+        # builds and smoke-tests the published output (package engines: >=20).
+        node-version: [20, 22, 24]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: ${{ matrix.node-version }}
           cache: npm
-      - run: npm ci --legacy-peer-deps
+      - run: npm ci
       - run: npm run typecheck
+        if: matrix.node-version != 20
       - run: npm run lint
+        if: matrix.node-version != 20
       - run: npm test
+        if: matrix.node-version != 20
       - run: npm run build
+      - name: Smoke-test built package
+        run: |
+          node -e "if (typeof require('./dist/index.cjs').MemoryStore !== 'function') process.exit(1)"
+          node --input-type=module -e "const m = await import('./dist/index.js'); if (typeof m.MemoryStore !== 'function') process.exit(1)"
+          node dist/cli/index.js --version
+          cli="$GITHUB_WORKSPACE/dist/cli/index.js"
+          tmp="$(mktemp -d)"
+          cd "$tmp"
+          node "$cli" init
+          node "$cli" add "ci smoke test" --tags ci
+          node "$cli" search smoke | grep -q "ci smoke test"
 
   coverage:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
-      - run: npm ci --legacy-peer-deps
+      - run: npm ci
       - run: npm run test:coverage
       - name: Upload coverage
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: coverage-report
           path: coverage/
-
-  publish:
-    needs: build
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      id-token: write
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          registry-url: https://registry.npmjs.org
-          cache: npm
-      - run: npm ci --legacy-peer-deps
-      - run: npm run build
-      - run: npm publish --provenance --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
