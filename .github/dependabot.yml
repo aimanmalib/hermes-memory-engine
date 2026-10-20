@@ -21,6 +21,8 @@ updates:
         update-types: [version-update:semver-major]
       - dependency-name: eslint
         update-types: [version-update:semver-major]
+      - dependency-name: better-sqlite3
+        update-types: [version-update:semver-major]
       # @types/node follows the lowest supported Node major, not the newest.
       - dependency-name: "@types/node"
         update-types: [version-update:semver-major]
