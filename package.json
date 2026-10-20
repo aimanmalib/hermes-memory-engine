@@ -63,7 +63,7 @@
     "node": ">=20.0.0"
   },
   "devDependencies": {
-    "@eslint/js": "^9.39.5",
+    "@eslint/js": "^10.0.1",
     "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^22.0.0",
     "@vitest/coverage-v8": "^5.0.5",
