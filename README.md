@@ -8,6 +8,11 @@
 
 > **Status:** early (0.x). The API may still change before 1.0.
 
+<p align="center">
+  <img src="docs/demo/demo.gif" alt="Terminal demo: hermes-memory init, add three memories for two agents, search, then list and print the Markdown files on disk" width="900">
+</p>
+<p align="center"><sub>Real output from the published npm package (<code>npm i -g hermes-memory-engine</code>), recorded with <a href="https://github.com/charmbracelet/vhs">VHS</a> from <a href="docs/demo/demo.tape"><code>docs/demo/demo.tape</code></a>. Nothing is sped up.</sub></p>
+
 ## Why?
 
 AI agents need persistent, searchable, structured memory. Flat `.md` files are easy to read but hard to query; vector databases are powerful but heavy. This library sits in between:
