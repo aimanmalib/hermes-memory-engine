@@ -10,12 +10,15 @@ import { FileBackend } from "../core/file-backend.js";
 import { HermesMemoryAdapter } from "../integrations/hermes.js";
 import type { LLMProvider } from "../core/memory-compress.js";
 
+// Injected at build time from package.json (see tsup.config.ts)
+declare const __PKG_VERSION__: string;
+
 const program = new Command();
 
 program
   .name("hermes-memory")
   .description("Hermes Memory Engine — markdown-based AI memory CLI")
-  .version("0.1.0");
+  .version(__PKG_VERSION__);
 
 function getDefaultStoreDir() {
   return join(process.cwd(), ".hermes-memory");
