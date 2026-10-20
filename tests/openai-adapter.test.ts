@@ -30,7 +30,8 @@ describe("OpenAIAdapter", () => {
   });
 
   afterEach(() => {
-    try { rmSync(tempDir, { recursive: true, force: true }); } catch {}
+    // force: true already ignores a missing directory
+    rmSync(tempDir, { recursive: true, force: true });
   });
 
   it("implements LLMProvider.complete (mocked)", async () => {
@@ -76,9 +77,9 @@ describe("OpenAIAdapter", () => {
   it("provides tool schemas for memory ops", () => {
     const schemas = adapter.getToolSchemas();
     expect(schemas.length).toBe(3);
-    expect(schemas.some((s: any) => s.function?.name === "memory_add")).toBe(true);
-    expect(schemas.some((s: any) => s.function?.name === "memory_search")).toBe(true);
-    expect(schemas.some((s: any) => s.function?.name === "memory_list")).toBe(true);
+    expect(schemas.some((s) => s.function.name === "memory_add")).toBe(true);
+    expect(schemas.some((s) => s.function.name === "memory_search")).toBe(true);
+    expect(schemas.some((s) => s.function.name === "memory_list")).toBe(true);
   });
 
   it("getSystemPromptBlock returns context from store", async () => {
@@ -138,6 +139,13 @@ describe("OpenAIAdapter", () => {
 
     expect(result.memories).toBeDefined();
     expect(result.memories.length).toBe(2);
+  });
+
+  it("handleToolCall memory_add rejects missing content", async () => {
+    await expect(adapter.handleToolCall("memory_add", { tags: ["x"] }, store)).rejects.toThrow(
+      "memory_add requires a non-empty 'content' string"
+    );
+    expect(await store.listAll()).toHaveLength(0);
   });
 
   it("handleToolCall throws on unknown tool", async () => {

@@ -2,9 +2,7 @@
  * Multi-agent example — isolated namespaces + shared memory
  */
 import {
-  MemoryStore,
   FileBackend,
-  SQLiteBackend,
   AgentRegistry,
   AgentContext,
   SharedMemory,
@@ -65,6 +63,7 @@ async function main() {
 
   // Researcher writes to shared pool
   const sharedMem = await shared.write("researcher", "Key finding: TS is growing", ["shared-research"]);
+  console.log("Researcher wrote shared memory:", sharedMem.id);
 
   // Writer reads shared pool
   const writerShared = await shared.read("writer");

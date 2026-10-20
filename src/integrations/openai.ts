@@ -18,11 +18,12 @@
 import type { LLMProvider } from "../core/memory-compress.js";
 import type { CreateMemoryInput } from "../core/types.js";
 import type { MemoryStore } from "../core/memory-store.js";
+import { requireContent, type MemoryToolArgs, type MemoryToolResult } from "./memory-tools.js";
 
 export interface OpenAIAdapterConfig {
   apiKey: string;
   model?: string; // default gpt-4o-mini or similar
-  baseURL?: string; // for proxies like 9router
+  baseURL?: string; // for OpenAI-compatible proxies
 }
 
 export class OpenAIAdapter implements LLMProvider {
@@ -59,7 +60,9 @@ export class OpenAIAdapter implements LLMProvider {
       throw new Error(`OpenAI API error: ${res.status} ${err}`);
     }
 
-    const data = await res.json() as any;
+    const data = (await res.json()) as {
+      choices?: Array<{ message?: { content?: string } }>;
+    };
     return data.choices?.[0]?.message?.content?.trim() || "";
   }
 
@@ -118,13 +121,13 @@ export class OpenAIAdapter implements LLMProvider {
   /** Handle a tool call from OpenAI (requires a MemoryStore) */
   async handleToolCall(
     name: string,
-    args: any,
+    args: MemoryToolArgs,
     store: MemoryStore
-  ): Promise<any> {
+  ): Promise<MemoryToolResult> {
     switch (name) {
       case "memory_add": {
         const input: CreateMemoryInput = {
-          content: args.content,
+          content: requireContent(args),
           tags: args.tags || [],
           agent: args.agent || "default",
         };

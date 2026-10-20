@@ -22,20 +22,21 @@ describe("HermesMemoryAdapter", () => {
   });
 
   afterEach(() => {
-    try { rmSync(tempDir, { recursive: true, force: true }); } catch {}
+    // force: true already ignores a missing directory
+    rmSync(tempDir, { recursive: true, force: true });
   });
 
   it("parses Hermes §-separated MEMORY.md format into entries", () => {
-    const raw = `Telegram bot @aimclawdbot, home chat_id 8155389481.
+    const raw = `Telegram bot @example_bot, home chat_id 1234567890.
 §
-TUNONE: family biz details here.
+ACME: family business details here.
 §
-hermes-memory-engine project at /root/projects/hermes-memory-engine. Phase 1-2 done.`;
+hermes-memory-engine project at ~/projects/hermes-memory-engine. Phase 1-2 done.`;
 
     const entries = adapter.parseHermesMemory(raw, "memory");
 
     expect(entries.length).toBe(3);
-    expect(entries[0].content).toContain("Telegram bot @aimclawdbot");
+    expect(entries[0].content).toContain("Telegram bot @example_bot");
     expect(entries[0].tags).toContain("hermes");
     expect(entries[0].tags).toContain("memory");
     expect(entries[0].agent).toBe("hermes-builtin");
@@ -92,5 +93,35 @@ User runs three income streams via Hermes.`;
     const snap = await adapter.getHermesMemorySnapshot();
     expect(snap.memory).toContain("mem fact");
     expect(snap.user).toContain("user fact");
+  });
+
+  it("exportToHermes keeps MEMORY.md and USER.md facts separate", async () => {
+    await adapter.writeHermesRaw("memory", "mem fact 1\n§\nmem fact 2");
+    await adapter.writeHermesRaw("user", "user fact");
+
+    const store = new MemoryStore(new FileBackend(join(tempDir, "store")));
+    await store.init();
+    await adapter.importFromHermes(store);
+    await store.create({ content: "tagged for user", tags: ["user"] });
+    await store.create({ content: "generic hermes fact", tags: ["hermes"] });
+    await store.create({ content: "unrelated fact", tags: ["misc"] });
+
+    const memCount = await adapter.exportToHermes(store, "memory");
+    const userCount = await adapter.exportToHermes(store, "user");
+    const snap = await adapter.getHermesMemorySnapshot();
+
+    expect(memCount).toBe(3);
+    expect(userCount).toBe(3);
+    expect(snap.memory).toContain("mem fact 1");
+    expect(snap.memory).toContain("mem fact 2");
+    expect(snap.memory).toContain("generic hermes fact");
+    expect(snap.memory).not.toContain("user fact");
+    expect(snap.memory).not.toContain("tagged for user");
+    expect(snap.user).toContain("user fact");
+    expect(snap.user).toContain("tagged for user");
+    expect(snap.user).toContain("generic hermes fact");
+    expect(snap.user).not.toContain("mem fact");
+    expect(snap.memory).not.toContain("unrelated fact");
+    expect(snap.user).not.toContain("unrelated fact");
   });
 });

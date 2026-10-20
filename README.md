@@ -1,23 +1,25 @@
-# 🧠 Hermes Memory Engine
+# Hermes Memory Engine
 
-[![CI](https://github.com/aimanmalib/hermes-memory-engine/actions/workflows/ci.yml/badge.svg)](https://github.com/aimanmalib/hermes-memory-engine/actions)
+[![CI](https://github.com/aimanmalib/hermes-memory-engine/actions/workflows/ci.yml/badge.svg)](https://github.com/aimanmalib/hermes-memory-engine/actions/workflows/ci.yml)
 [![npm](https://img.shields.io/npm/v/hermes-memory-engine)](https://www.npmjs.com/package/hermes-memory-engine)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Tests](https://img.shields.io/badge/tests-173%20passing-brightgreen)](https://github.com/aimanmalib/hermes-memory-engine/actions)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-**A production-grade, markdown-based AI memory system for agents.** Multi-agent support, LLM-powered compression, cloud sync, encryption, and versioning — all in a single npm package.
+**A markdown-based memory library for AI agents, written in TypeScript.** Memories are plain `.md` files with YAML frontmatter (or rows in SQLite), with building blocks for multi-agent namespaces, LLM-based compression, cloud sync, encryption and snapshots. It can also read and write the `MEMORY.md` / `USER.md` files used by Hermes Agent.
+
+> **Status:** early (0.x). The API may still change before 1.0.
 
 ## Why?
 
-AI agents need persistent, searchable, structured memory. Existing solutions are either too simple (flat `.md` files) or too complex (full vector databases). Hermes Memory Engine bridges the gap:
+AI agents need persistent, searchable, structured memory. Flat `.md` files are easy to read but hard to query; vector databases are powerful but heavy. This library sits in between:
 
-- 📝 **Markdown-first** — memories are human-readable `.md` files with YAML frontmatter
-- 🤖 **Multi-agent** — isolated namespaces with shared memory pools
-- 🧹 **LLM-powered compression** — auto-summarize old memories to save context
-- ☁️ **Cloud sync** — GitHub Gist, S3, or custom HTTP backends
-- 🔒 **Encryption** — AES-256-GCM encryption at rest (optional)
-- 📊 **Versioning** — snapshot history with diff and rollback
-- 🔌 **Integrations** — Hermes Agent, OpenAI, and Claude adapters built-in
+- **Markdown-first** — one human-readable `.md` file per memory, grouped by agent
+- **Pluggable storage** — `FileBackend` or `SQLiteBackend` behind the same `MemoryStore` API
+- **Multi-agent** — per-agent namespaces, a shared pool with read/write/admin permissions, token-budgeted prompt context
+- **LLM compression** — summarize batches of old memories with any LLM (OpenAI and Claude adapters included)
+- **Sync** — push/pull to a GitHub Gist, S3-compatible storage, or your own HTTP endpoint
+- **Encryption** — AES-256-GCM helpers (scrypt key derivation) to encrypt memory content before you store or sync it
+- **Versioning** — in-memory snapshots with diff and rollback
+- **Integrations** — tool schemas and handlers for OpenAI and Claude tool calling; Hermes Agent import/export
 
 ## Installation
 
@@ -25,74 +27,69 @@ AI agents need persistent, searchable, structured memory. Existing solutions are
 npm install hermes-memory-engine
 ```
 
-Or use the CLI directly:
-
-```bash
-npx hermes-memory init
-```
+Requires Node.js 20 or newer. SQLite support uses the native [`better-sqlite3`](https://github.com/WiseLibs/better-sqlite3) module, which is installed as a dependency.
 
 ## Quick Start
 
 ### CLI
 
+The package ships a `hermes-memory` command. It stores memories in `./.hermes-memory` in the current directory.
+
 ```bash
-# Initialize a memory store
+# Create ./.hermes-memory
 npx hermes-memory init
 
-# Add a memory
+# Add a memory (tags are comma-separated; agent defaults to "default")
 npx hermes-memory add "User prefers TypeScript and concise responses" \
-  --tags preferences --agent my-agent
+  --tags preferences,ui --agent my-agent
 
-# Search memories
+# Search memories (optional: --tags, --agent, --limit)
 npx hermes-memory search "typescript"
 
-# List recent memories
+# List recent memories (optional: --agent, --limit)
 npx hermes-memory list
 
-# Import from Hermes Agent format
+# Import Hermes Agent's MEMORY.md / USER.md (default home: $HERMES_HOME or ~/.hermes)
 npx hermes-memory import-hermes --home ~/.hermes
 
-# Export to Hermes Agent format
+# Export back to Hermes format — this OVERWRITES MEMORY.md and USER.md
 npx hermes-memory export-hermes --home ~/.hermes
 
-# Compress old memories (LLM-powered)
+# Demo only: runs compression with a mock LLM and prints the result; nothing is saved
 npx hermes-memory compress --threshold 10
 ```
 
 ### Programmatic API
 
 ```typescript
-import {
-  MemoryStore,
-  FileBackend,
-  SQLiteBackend,
-} from "hermes-memory-engine";
+import { MemoryStore, FileBackend } from "hermes-memory-engine";
 
 // File-based storage (human-readable .md files)
 const store = new MemoryStore(new FileBackend("./my-memories"));
 await store.init();
 
-// Create memories
+// Create a memory
 const memory = await store.create({
   content: "User prefers dark mode and concise responses",
   tags: ["preferences", "ui"],
   agent: "my-agent",
 });
 
-// Search with relevance scoring
+// Filter by text, tags, agent or date range
 const results = await store.search({
   query: "dark mode",
   tags: ["preferences"],
   limit: 10,
 });
 
-// CRUD operations
-await store.update(memory.id, { content: "Updated memory" });
+// Read, update, list, delete
+await store.get(memory.id);
+await store.update(memory.id, { content: "User prefers dark mode" });
+await store.listByAgent("my-agent");
 await store.delete(memory.id);
-await store.list({ agent: "my-agent", limit: 20 });
 ```
 
-### SQLite Backend (for production)
+### SQLite backend
 
 ```typescript
 import { MemoryStore, SQLiteBackend } from "hermes-memory-engine";
@@ -101,172 +98,216 @@ const store = new MemoryStore(new SQLiteBackend("./memories.db"));
 await store.init();
 
 // Same API — swap backends without changing code
-const memory = await store.create({
-  content: "Production memory with indexed queries",
-  tags: ["production"],
-});
+await store.create({ content: "Stored in SQLite", tags: ["example"] });
+await store.close();
 ```
 
 ## Features
 
-### Memory Graph
+### Relevance-scored search
 
-Link memories with typed relationships — `related_to`, `derived_from`, `supersedes`:
+`MemoryStore.search` filters; `MemorySearch` ranks results by text match, tag boost and recency:
 
 ```typescript
-import { MemoryGraph } from "hermes-memory-engine";
+import { MemorySearch, MemoryStore, FileBackend } from "hermes-memory-engine";
+
+const store = new MemoryStore(new FileBackend("./my-memories"));
+await store.init();
+
+const ranked = new MemorySearch().search(await store.listAll(), {
+  query: "dark mode",
+  tagBoost: 2,
+  limit: 5,
+});
+ranked.forEach((r) => console.log(r.score.toFixed(2), r.entry.content));
+```
+
+### Memory graph
+
+Link memories with typed relationships (`related_to`, `derived_from`, `supersedes`, `contradicts`, `supports`):
+
+```typescript
+import { MemoryGraph, MemoryStore, FileBackend } from "hermes-memory-engine";
+
+const store = new MemoryStore(new FileBackend("./my-memories"));
+await store.init();
+const a = await store.create({ content: "Project uses TypeScript" });
+const b = await store.create({ content: "Project uses strict mode" });
 
 const graph = new MemoryGraph();
-graph.addNode(memoryA);
-graph.addNode(memoryB);
-graph.addEdge(memoryA.id, memoryB.id, "related_to");
+graph.addNode(a);
+graph.addNode(b);
+graph.addEdge(a.id, b.id, "related_to");
 
-// BFS traversal, depth-limited
-const related = graph.findRelated(memoryA.id, { maxDepth: 2 });
-
-// Cycle-safe, cluster detection
-const clusters = graph.detectClusters();
+const related = graph.findRelated(a.id, 2); // BFS, max depth 2
+const clusters = graph.getClusters(); // connected groups
 ```
 
-### Multi-Agent
+### Multi-agent
 
 ```typescript
-import {
-  AgentRegistry,
-  AgentContext,
-  SharedMemory,
-} from "hermes-memory-engine";
+import { AgentRegistry, AgentContext, SharedMemory, FileBackend } from "hermes-memory-engine";
 
-// Register agents with isolated namespaces
-const registry = new AgentRegistry(store);
-registry.register("agent-1", { name: "Research Agent" });
-registry.register("agent-2", { name: "Writing Agent" });
+// Agents share one backend; each gets its own namespace
+const registry = new AgentRegistry(new FileBackend("./agent-memories"));
+await registry.init();
 
-// Per-agent context (token-aware compression for prompts)
-const context = new AgentContext(registry, store);
-const promptBlock = await context.generateSystemPrompt("agent-1", {
-  maxTokens: 2000,
+const researcher = await registry.register({
+  id: "researcher",
+  name: "Research Agent",
+  canAccessShared: true,
+  canWriteShared: true,
 });
+await researcher.store.create({ content: "TypeScript adoption is growing", agent: "researcher" });
 
-// Cross-agent shared memory with permissions
-const shared = new SharedMemory(store);
-shared.share(memory.id, "agent-2", "read");
+// Token-budgeted context for a system prompt
+const ctx = new AgentContext(researcher.config, 2000);
+ctx.loadMemories(await registry.getAgentMemories("researcher"));
+const systemPrompt = ctx.toSystemPrompt();
+
+// Shared pool with read / write / admin permissions
+const shared = new SharedMemory(researcher.store);
+shared.grant("researcher", "write");
+shared.grant("writer", "read");
+await shared.write("researcher", "Key finding: TS is growing", ["research"]);
+const visibleToWriter = await shared.read("writer");
 ```
 
-### LLM Compression
+### LLM compression
+
+`MemoryCompressor` summarizes batches of memories with any `LLMProvider` (an object with `complete(prompt): Promise<string>`). It returns the summaries; saving them and removing the originals is up to you.
 
 ```typescript
-import {
-  MemoryCompressor,
-  OpenAIAdapter,
-} from "hermes-memory-engine";
+import { MemoryCompressor, OpenAIAdapter, MemoryStore, FileBackend } from "hermes-memory-engine";
 
-const llm = new OpenAIAdapter({ apiKey: process.env.OPENAI_API_KEY });
+const store = new MemoryStore(new FileBackend("./my-memories"));
+await store.init();
+
+const llm = new OpenAIAdapter({ apiKey: process.env.OPENAI_API_KEY ?? "" });
 const compressor = new MemoryCompressor(llm);
 
-// Auto-compress memories older than 30 days
-await compressor.autoCompress(store, {
-  maxAgeDays: 30,
-  preserveTags: ["important"],
-});
+// For each agent with more than 20 memories, summarize the oldest ones
+const results = await compressor.autoCompress(await store.listAll(), 20);
+for (const r of results) {
+  await store.create({ content: r.compressed.content, tags: r.compressed.tags, agent: r.compressed.agent });
+}
 ```
 
-### Cloud Sync
+### Cloud sync
+
+`MemorySync` takes a sync backend and a conflict strategy (`local`, `remote`, `merge` — the default — or `manual`):
 
 ```typescript
 import {
   MemorySync,
   GitHubGistBackend,
   S3Backend,
+  HttpBackend,
+  MemoryStore,
+  FileBackend,
 } from "hermes-memory-engine";
 
-// Sync to GitHub Gist
-const gistSync = new MemorySync(store, new GitHubGistBackend({ token: "ghp_..." }));
-await gistSync.sync(); // Bidirectional
+const store = new MemoryStore(new FileBackend("./my-memories"));
+await store.init();
 
-// Sync to S3/R2/MinIO
-const s3Sync = new MemorySync(store, new S3Backend({
-  bucket: "my-memories",
-  region: "us-east-1",
-  accessKeyId: "...",
-  secretAccessKey: "...",
-}));
-await s3Sync.sync({ strategy: "merge" }); // local | remote | merge | manual
+// GitHub Gist (a new secret gist is created if no gistId is given)
+const gistSync = new MemorySync(new GitHubGistBackend({ token: process.env.GITHUB_TOKEN ?? "" }), "merge");
+await gistSync.sync(await store.listAll()); // merge local + remote, upload the result
+
+// S3-compatible storage (AWS S3, Cloudflare R2, MinIO, ...)
+const s3Sync = new MemorySync(new S3Backend({ bucket: "my-memories", region: "us-east-1" }));
+const { memories: remote } = await s3Sync.pull(); // fetch remote entries
+
+// Your own server (PUT/GET/HEAD/DELETE /memories)
+const httpSync = new MemorySync(new HttpBackend({ url: "https://example.com/api", token: "..." }));
+await httpSync.push(await store.listAll());
 ```
 
 ### Encryption
 
 ```typescript
-import { MemoryEncryption } from "hermes-memory-engine";
+import { MemoryEncryption, MemoryStore, FileBackend } from "hermes-memory-engine";
 
-const encryption = new MemoryEncryption("my-secure-passphrase");
+const store = new MemoryStore(new FileBackend("./my-memories"));
+await store.init();
+const memory = await store.create({ content: "Sensitive fact" });
 
-// Encrypt at rest
-const encrypted = encryption.encrypt(memory);
-const decrypted = encryption.decrypt(encrypted);
+const encryption = new MemoryEncryption();
+encryption.initWithPassphrase("my-secure-passphrase"); // scrypt-derived AES-256-GCM key
 
-// Batch operations
-const encryptedBatch = encryption.encryptBatch(memories);
+const encrypted = encryption.encryptMemory(memory); // content encrypted, metadata.encrypted = true
+const decrypted = encryption.decryptMemory(encrypted);
+
+const batch = encryption.encryptMemories(await store.listAll());
 ```
 
 ### Versioning
 
+Snapshots are kept in memory; persist them yourself if you need them across restarts.
+
 ```typescript
-import { MemoryVersioning } from "hermes-memory-engine";
+import { MemoryVersioning, MemoryStore, FileBackend } from "hermes-memory-engine";
 
-const versioning = new MemoryVersioning({ maxSnapshots: 50 });
+const store = new MemoryStore(new FileBackend("./my-memories"));
+await store.init();
 
-// Snapshot the current state
-versioning.commit(store, "Before refactor");
+const versioning = new MemoryVersioning(50); // keep at most 50 snapshots
 
-// Diff between snapshots
-const diff = versioning.diff(snapshot1, snapshot2);
-// { added: [...], removed: [...], modified: [...] }
+const before = versioning.commit(await store.listAll(), "Before refactor");
+await store.create({ content: "New fact" });
+const after = versioning.commit(await store.listAll(), "After refactor");
 
-// Rollback
-versioning.rollback(store, snapshot1);
+const diff = versioning.diff(before.id, after.id); // { added, removed, modified }
+const restored = versioning.rollback(before.id); // memories as they were in that snapshot
 ```
 
 ### Integrations
 
-#### OpenAI / Claude Adapters
+#### OpenAI / Claude adapters
 
-Dual-purpose: use as LLM provider for compression OR as tool-calling schemas for agents:
+Both adapters can act as the LLM provider for compression and expose memory tools for agent tool calling:
 
 ```typescript
-import {
-  OpenAIAdapter,
-  ClaudeAdapter,
-} from "hermes-memory-engine";
+import { OpenAIAdapter, ClaudeAdapter, MemoryCompressor, MemoryStore, FileBackend } from "hermes-memory-engine";
+
+const store = new MemoryStore(new FileBackend("./my-memories"));
+await store.init();
+
+const openai = new OpenAIAdapter({ apiKey: process.env.OPENAI_API_KEY ?? "" });
 
 // As LLM provider (for compression)
-const openai = new OpenAIAdapter({ apiKey: process.env.OPENAI_API_KEY });
 const compressor = new MemoryCompressor(openai);
 
-// As tool provider (for agent tool calling)
-const schemas = openai.getToolSchemas();
+// As tool provider: memory_add, memory_search, memory_list
+const tools = openai.getToolSchemas(); // OpenAI function-calling format
 const result = await openai.handleToolCall("memory_add", { content: "fact" }, store);
 
-// System prompt injection with memory context
+// System prompt block with recent memories
 const promptBlock = await openai.getSystemPromptBlock(store, "my-agent");
+
+// Same API for Claude (Anthropic Messages API; tool schemas use input_schema)
+const claude = new ClaudeAdapter({ apiKey: process.env.ANTHROPIC_API_KEY ?? "" });
+const claudeTools = claude.getToolSchemas();
 ```
 
-Same API for `ClaudeAdapter` (Anthropic Messages API).
+#### Hermes Agent adapter
 
-#### Hermes Agent Adapter
-
-Read/write Hermes Agent's native `§`-format memory files:
+Read and write Hermes Agent's `§`-separated `MEMORY.md` / `USER.md` files:
 
 ```typescript
-import { HermesMemoryAdapter } from "hermes-memory-engine";
+import { HermesMemoryAdapter, MemoryStore, FileBackend } from "hermes-memory-engine";
 
-const hermes = new HermesMemoryAdapter();
+const store = new MemoryStore(new FileBackend("./my-memories"));
+await store.init();
 
-// Import from ~/.hermes/memories/
-const memories = await hermes.importFromHermes(store, "~/.hermes");
+// hermesHome defaults to $HERMES_HOME or ~/.hermes
+const hermes = new HermesMemoryAdapter({ hermesHome: "/path/to/.hermes" });
 
-// Bidirectional sync
-await hermes.syncBidirectional(store, "~/.hermes");
+// Import MEMORY.md + USER.md into the store
+const imported = await hermes.importFromHermes(store);
+
+// Import, then write back (export overwrites the Hermes files)
+await hermes.syncBidirectional(store, "both");
 ```
 
 ## Architecture
@@ -286,54 +327,52 @@ await hermes.syncBidirectional(store, "~/.hermes");
            │              │              │
            └──────────────┼──────────────┘
                           ▼
-                   ┌─────────────┐
-                   │ Integrations│
-                   │ OpenAI/Claude│
-                   │ /Hermes     │
-                   └─────────────┘
+                  ┌───────────────┐
+                  │ Integrations  │
+                  │ OpenAI/Claude │
+                  │ /Hermes       │
+                  └───────────────┘
 ```
 
 **Design principles:**
-- **Pluggable backends** — swap File ↔ SQLite ↔ custom without changing API
-- **Zero dependencies for core** — only `better-sqlite3` for SQLite backend
+- **Pluggable backends** — implement `StorageBackend` or `SyncBackend` to add your own
+- **Small dependency footprint** — runtime dependencies are `better-sqlite3`, `gray-matter` and `commander`; HTTP calls use the built-in `fetch`
 - **Type-safe** — strict TypeScript, full type exports
-- **Human-readable** — markdown files you can inspect, diff, and edit by hand
+- **Human-readable** — markdown files you can inspect, diff and edit by hand
+
+Design decisions are recorded in [`docs/adr/`](docs/adr).
 
 ## CLI Reference
 
-| Command | Description |
-|---------|-------------|
-| `hermes-memory init` | Initialize a memory store in current directory |
-| `hermes-memory add "content"` | Add a memory (`--tags`, `--agent`) |
-| `hermes-memory search "query"` | Search memories (full-text + tag filter) |
-| `hermes-memory list` | List recent memories (`--agent`, `--limit`) |
-| `hermes-memory import-hermes` | Import from Hermes Agent format (`--home`) |
-| `hermes-memory export-hermes` | Export to Hermes Agent format (`--home`) |
-| `hermes-memory compress` | LLM-powered compression (`--threshold`) |
+All commands use the store in `./.hermes-memory`.
 
-## Project Status
-
-| Phase | Status | Components |
-|-------|--------|------------|
-| 1. Foundation | ✅ | MemoryStore, FileBackend, SQLiteBackend, MemoryGraph |
-| 2. Multi-Agent | ✅ | AgentRegistry, AgentContext, SharedMemory |
-| 3. Intelligence | ✅ | MemoryCompressor, MemorySearch, MemoryConsolidation |
-| 4. Sync & Distribution | ✅ | MemorySync, Gist/S3/HTTP backends, Encryption, Versioning |
-| 5. Integration & CLI | ✅ | Hermes/OpenAI/Claude adapters, full CLI |
-| 6. Polish & Launch | 🔄 | This phase |
-
-**104 tests passing** · **Build clean** · **MIT License**
+| Command | Options | Description |
+|---------|---------|-------------|
+| `hermes-memory init [dir]` | | Create the store directory (default `./.hermes-memory`) |
+| `hermes-memory add <content>` | `-t, --tags <tags>` · `-a, --agent <agent>` | Add a memory (tags comma-separated; agent defaults to `default`) |
+| `hermes-memory search <query>` | `-t, --tags` · `-a, --agent` · `-l, --limit` (10) | Search memories by text, tags and agent |
+| `hermes-memory list` | `-a, --agent` · `-l, --limit` (20) | List recent memories |
+| `hermes-memory import-hermes` | `--home <path>` | Import Hermes Agent `MEMORY.md` / `USER.md` |
+| `hermes-memory export-hermes` | `--home <path>` | Export to Hermes format (overwrites `MEMORY.md` / `USER.md`) |
+| `hermes-memory compress` | `-a, --agent` · `--threshold <n>` (5) | Demo of compression with a mock LLM; prints results, saves nothing |
+| `hermes-memory --version` / `--help` | | Show version / help |
 
 ## Contributing
 
-1. Fork the repo
-2. `npm install` (uses `--legacy-peer-deps` if needed)
-3. `npm test` — run all tests
-4. `npm run build` — verify build
-5. Open a PR
+Development needs Node.js 22.12 or newer.
 
-Conventional commits. All PRs credit `aimanmalib`.
+1. Fork the repo
+2. `npm ci`
+3. `npm run typecheck && npm run lint && npm test`
+4. `npm run build`
+5. Open a PR (Conventional Commits, please)
+
+Security issues: see [SECURITY.md](SECURITY.md).
 
 ## License
 
-MIT © Aiman Malib
+[MIT](LICENSE) © Muhammad Aiman
+
+---
+
+Built by [Sasa Teguh](https://sasateguh.com) · Malaysia

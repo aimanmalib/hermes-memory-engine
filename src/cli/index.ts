@@ -8,13 +8,17 @@ import { join } from "node:path";
 import { MemoryStore } from "../core/memory-store.js";
 import { FileBackend } from "../core/file-backend.js";
 import { HermesMemoryAdapter } from "../integrations/hermes.js";
+import type { LLMProvider } from "../core/memory-compress.js";
+
+// Injected at build time from package.json (see tsup.config.ts)
+declare const __PKG_VERSION__: string;
 
 const program = new Command();
 
 program
   .name("hermes-memory")
   .description("Hermes Memory Engine — markdown-based AI memory CLI")
-  .version("0.1.0");
+  .version(__PKG_VERSION__);
 
 function getDefaultStoreDir() {
   return join(process.cwd(), ".hermes-memory");
@@ -146,13 +150,13 @@ program
       console.log("No memories to compress.");
       return;
     }
-    const mockLLM = {
+    const mockLLM: LLMProvider = {
       async complete(_prompt: string): Promise<string> {
         return `Compressed summary: consolidated ${all.length} memories into key facts, decisions and preferences. (Demo - no real LLM used)`;
       },
     };
     const { MemoryCompressor } = await import("../core/memory-compress.js");
-    const compressor = new MemoryCompressor(mockLLM as any);
+    const compressor = new MemoryCompressor(mockLLM);
     const results = await compressor.autoCompress(all, parseInt(opts.threshold, 10));
     console.log(`✅ Compressed ${results.length} batch(es) (demo).`);
     results.forEach((r, i) => {

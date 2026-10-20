@@ -11,6 +11,7 @@ import type { MemoryStore } from "../core/memory-store.js";
  */
 
 import type { LLMProvider } from "../core/memory-compress.js";
+import { requireContent, type MemoryToolArgs, type MemoryToolResult } from "./memory-tools.js";
 
 export interface ClaudeAdapterConfig {
   apiKey: string;
@@ -52,7 +53,7 @@ export class ClaudeAdapter implements LLMProvider {
       throw new Error(`Claude API error: ${res.status} ${err}`);
     }
 
-    const data = await res.json() as any;
+    const data = (await res.json()) as { content?: Array<{ text?: string }> };
     const content = data.content?.[0];
     return (content?.text || "").trim();
   }
@@ -99,11 +100,15 @@ export class ClaudeAdapter implements LLMProvider {
     ];
   }
 
-  async handleToolCall(name: string, args: any, store: MemoryStore): Promise<any> {
+  async handleToolCall(
+    name: string,
+    args: MemoryToolArgs,
+    store: MemoryStore
+  ): Promise<MemoryToolResult> {
     switch (name) {
       case "memory_add": {
         const mem = await store.create({
-          content: args.content,
+          content: requireContent(args),
           tags: args.tags || [],
           agent: args.agent || "default",
         });
