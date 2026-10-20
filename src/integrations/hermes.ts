@@ -222,13 +222,20 @@ export class HermesMemoryAdapter {
       );
     }
 
-    // Only entries that originated from or are tagged for this target
-    const relevant = entries.filter(
-      (e) =>
-        e.metadata?.source === "hermes-builtin" ||
-        e.tags.includes(target) ||
-        e.tags.includes("hermes")
-    );
+    // Only entries that belong to this target. Entries imported from Hermes
+    // record their origin in metadata.target, so a USER.md fact is never
+    // written into MEMORY.md (and vice versa). Untargeted entries fall back
+    // to the target tag, then to the generic "hermes" markers.
+    const otherTarget: HermesTarget = target === "memory" ? "user" : "memory";
+    const relevant = entries.filter((e) => {
+      const entryTarget = e.metadata?.target;
+      if (entryTarget === "memory" || entryTarget === "user") {
+        return entryTarget === target;
+      }
+      if (e.tags.includes(target)) return true;
+      if (e.tags.includes(otherTarget)) return false;
+      return e.metadata?.source === "hermes-builtin" || e.tags.includes("hermes");
+    });
 
     const serialized = this.serializeToHermesFormat(relevant, target);
     await this.writeHermesRaw(target, serialized);

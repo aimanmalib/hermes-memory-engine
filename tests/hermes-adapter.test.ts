@@ -94,4 +94,34 @@ User runs three income streams via Hermes.`;
     expect(snap.memory).toContain("mem fact");
     expect(snap.user).toContain("user fact");
   });
+
+  it("exportToHermes keeps MEMORY.md and USER.md facts separate", async () => {
+    await adapter.writeHermesRaw("memory", "mem fact 1\n§\nmem fact 2");
+    await adapter.writeHermesRaw("user", "user fact");
+
+    const store = new MemoryStore(new FileBackend(join(tempDir, "store")));
+    await store.init();
+    await adapter.importFromHermes(store);
+    await store.create({ content: "tagged for user", tags: ["user"] });
+    await store.create({ content: "generic hermes fact", tags: ["hermes"] });
+    await store.create({ content: "unrelated fact", tags: ["misc"] });
+
+    const memCount = await adapter.exportToHermes(store, "memory");
+    const userCount = await adapter.exportToHermes(store, "user");
+    const snap = await adapter.getHermesMemorySnapshot();
+
+    expect(memCount).toBe(3);
+    expect(userCount).toBe(3);
+    expect(snap.memory).toContain("mem fact 1");
+    expect(snap.memory).toContain("mem fact 2");
+    expect(snap.memory).toContain("generic hermes fact");
+    expect(snap.memory).not.toContain("user fact");
+    expect(snap.memory).not.toContain("tagged for user");
+    expect(snap.user).toContain("user fact");
+    expect(snap.user).toContain("tagged for user");
+    expect(snap.user).toContain("generic hermes fact");
+    expect(snap.user).not.toContain("mem fact");
+    expect(snap.memory).not.toContain("unrelated fact");
+    expect(snap.user).not.toContain("unrelated fact");
+  });
 });
