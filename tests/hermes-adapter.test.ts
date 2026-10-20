@@ -27,16 +27,16 @@ describe("HermesMemoryAdapter", () => {
   });
 
   it("parses Hermes §-separated MEMORY.md format into entries", () => {
-    const raw = `Telegram bot @aimclawdbot, home chat_id 8155389481.
+    const raw = `Telegram bot @example_bot, home chat_id 1234567890.
 §
-TUNONE: family biz details here.
+ACME: family business details here.
 §
-hermes-memory-engine project at /root/projects/hermes-memory-engine. Phase 1-2 done.`;
+hermes-memory-engine project at ~/projects/hermes-memory-engine. Phase 1-2 done.`;
 
     const entries = adapter.parseHermesMemory(raw, "memory");
 
     expect(entries.length).toBe(3);
-    expect(entries[0].content).toContain("Telegram bot @aimclawdbot");
+    expect(entries[0].content).toContain("Telegram bot @example_bot");
     expect(entries[0].tags).toContain("hermes");
     expect(entries[0].tags).toContain("memory");
     expect(entries[0].agent).toBe("hermes-builtin");
