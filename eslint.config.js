@@ -11,6 +11,6 @@ export default tseslint.config(
     },
   },
   {
-    ignores: ["dist/", "node_modules/", "*.config.*"],
+    ignores: ["dist/", "node_modules/", "coverage/", "docs/api/", "*.config.*"],
   }
 );

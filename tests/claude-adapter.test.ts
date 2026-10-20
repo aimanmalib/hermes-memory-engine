@@ -30,7 +30,8 @@ describe("ClaudeAdapter", () => {
   });
 
   afterEach(() => {
-    try { rmSync(tempDir, { recursive: true, force: true }); } catch {}
+    // force: true already ignores a missing directory
+    rmSync(tempDir, { recursive: true, force: true });
   });
 
   it("implements LLMProvider.complete", () => {
@@ -76,9 +77,9 @@ describe("ClaudeAdapter", () => {
   it("provides Anthropic-style tool schemas", () => {
     const schemas = adapter.getToolSchemas();
     expect(schemas.length).toBe(3);
-    expect(schemas.some((s: any) => s.name === "memory_add")).toBe(true);
-    expect(schemas.some((s: any) => s.name === "memory_search")).toBe(true);
-    expect(schemas.some((s: any) => s.name === "memory_list")).toBe(true);
+    expect(schemas.some((s) => s.name === "memory_add")).toBe(true);
+    expect(schemas.some((s) => s.name === "memory_search")).toBe(true);
+    expect(schemas.some((s) => s.name === "memory_list")).toBe(true);
     // Anthropic uses input_schema, not function.parameters
     expect(schemas[0].input_schema).toBeDefined();
   });
@@ -123,6 +124,13 @@ describe("ClaudeAdapter", () => {
     await store.create({ content: "Memory two", agent: "test" });
     const result = await adapter.handleToolCall("memory_list", { agent: "test" }, store);
     expect(result.memories.length).toBe(2);
+  });
+
+  it("handleToolCall memory_add rejects missing content", async () => {
+    await expect(adapter.handleToolCall("memory_add", { tags: ["x"] }, store)).rejects.toThrow(
+      "memory_add requires a non-empty 'content' string"
+    );
+    expect(await store.listAll()).toHaveLength(0);
   });
 
   it("handleToolCall throws on unknown tool", async () => {

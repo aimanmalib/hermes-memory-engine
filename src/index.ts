@@ -15,6 +15,7 @@ export { GitHubGistBackend } from "./sync/gist-backend.js";
 export { S3Backend } from "./sync/s3-backend.js";
 export { OpenAIAdapter, type OpenAIAdapterConfig, createOpenAIAdapter } from "./integrations/openai.js";
 export { ClaudeAdapter, type ClaudeAdapterConfig, createClaudeAdapter } from "./integrations/claude.js";
+export type { MemoryToolArgs, MemoryToolResult } from "./integrations/memory-tools.js";
 
 // Hermes Agent integration (Phase 5.1)
 export {

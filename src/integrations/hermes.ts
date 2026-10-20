@@ -20,6 +20,7 @@
 
 import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { join } from "node:path";
+import { homedir } from "node:os";
 import type { MemoryEntry, AgentId } from "../core/types.js";
 import { MemoryStore } from "../core/memory-store.js";
 
@@ -54,7 +55,7 @@ export class HermesMemoryAdapter {
   constructor(config: HermesAdapterConfig = {}) {
     const home = config.hermesHome || 
       process.env.HERMES_HOME || 
-      join(process.env.HOME || "/root", ".hermes");
+      join(homedir(), ".hermes");
     
     this.config = {
       hermesHome: home,
@@ -130,8 +131,8 @@ export class HermesMemoryAdapter {
     const path = this.getMemoryPath(target);
     try {
       return await readFile(path, "utf-8");
-    } catch (err: any) {
-      if (err.code === "ENOENT") return "";
+    } catch (err) {
+      if ((err as NodeJS.ErrnoException).code === "ENOENT") return "";
       throw err;
     }
   }
@@ -176,7 +177,7 @@ export class HermesMemoryAdapter {
               relations: entry.relations,
             });
             imported++;
-          } catch (e: any) {
+          } catch (e) {
             // Skip duplicates (MemoryStore should dedupe or throw on exact match)
             if (/duplicate|exists/i.test(String(e))) {
               skipped++;

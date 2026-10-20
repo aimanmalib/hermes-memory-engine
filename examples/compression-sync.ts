@@ -32,11 +32,11 @@ async function main() {
     const llm = new OpenAIAdapter({ apiKey: process.env.OPENAI_API_KEY });
     const compressor = new MemoryCompressor(llm);
 
-    // Get all memories and auto-compress when agent has more than threshold
+    // Get all memories and auto-compress when an agent has more than `threshold`.
+    // autoCompress returns the summaries; persisting them (and removing the
+    // originals) is up to the caller.
     const allMemories = await store.listAll();
-    const results = await compressor.autoCompress(allMemories, 1, {
-      preserveTags: ["important"],
-    });
+    const results = await compressor.autoCompress(allMemories, 1);
     console.log("Compression results:", results.length, "groups compressed");
   } else {
     console.log("Set OPENAI_API_KEY to test LLM compression");

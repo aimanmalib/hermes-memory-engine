@@ -8,6 +8,7 @@ import { join } from "node:path";
 import { MemoryStore } from "../core/memory-store.js";
 import { FileBackend } from "../core/file-backend.js";
 import { HermesMemoryAdapter } from "../integrations/hermes.js";
+import type { LLMProvider } from "../core/memory-compress.js";
 
 const program = new Command();
 
@@ -146,13 +147,13 @@ program
       console.log("No memories to compress.");
       return;
     }
-    const mockLLM = {
+    const mockLLM: LLMProvider = {
       async complete(_prompt: string): Promise<string> {
         return `Compressed summary: consolidated ${all.length} memories into key facts, decisions and preferences. (Demo - no real LLM used)`;
       },
     };
     const { MemoryCompressor } = await import("../core/memory-compress.js");
-    const compressor = new MemoryCompressor(mockLLM as any);
+    const compressor = new MemoryCompressor(mockLLM);
     const results = await compressor.autoCompress(all, parseInt(opts.threshold, 10));
     console.log(`✅ Compressed ${results.length} batch(es) (demo).`);
     results.forEach((r, i) => {

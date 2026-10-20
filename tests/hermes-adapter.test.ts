@@ -22,7 +22,8 @@ describe("HermesMemoryAdapter", () => {
   });
 
   afterEach(() => {
-    try { rmSync(tempDir, { recursive: true, force: true }); } catch {}
+    // force: true already ignores a missing directory
+    rmSync(tempDir, { recursive: true, force: true });
   });
 
   it("parses Hermes §-separated MEMORY.md format into entries", () => {
