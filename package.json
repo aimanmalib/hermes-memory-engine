@@ -15,7 +15,7 @@
     "./cli": "./dist/cli/index.js"
   },
   "bin": {
-    "hermes-memory": "./dist/cli/index.js"
+    "hermes-memory": "dist/cli/index.js"
   },
   "files": [
     "dist",
@@ -36,15 +36,28 @@
   },
   "keywords": [
     "ai",
+    "llm",
+    "ai-agents",
+    "agent-memory",
+    "multi-agent",
     "memory",
     "markdown",
-    "llm",
-    "multi-agent",
-    "knowledge-base",
     "sqlite",
-    "hermes"
+    "openai",
+    "anthropic",
+    "claude",
+    "hermes",
+    "typescript"
   ],
-  "author": "Aiman <aimanmalib@users.noreply.github.com>",
+  "author": "Muhammad Aiman",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aimanmalib/hermes-memory-engine.git"
+  },
+  "bugs": {
+    "url": "https://github.com/aimanmalib/hermes-memory-engine/issues"
+  },
+  "homepage": "https://github.com/aimanmalib/hermes-memory-engine#readme",
   "license": "MIT",
   "engines": {
     "node": ">=20.0.0"
