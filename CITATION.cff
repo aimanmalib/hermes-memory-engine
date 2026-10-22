@@ -1,0 +1,12 @@
+cff-version: 1.2.0
+message: "If you use hermes-memory-engine, please cite it as below."
+title: "Hermes Memory Engine: Markdown-based memory for AI agents"
+type: software
+authors:
+  - given-names: Muhammad
+    family-names: Aiman
+version: 0.1.0
+license: MIT
+repository-code: "https://github.com/aimanmalib/hermes-memory-engine"
+abstract: >-
+  A TypeScript library and CLI that stores AI-agent memories as Markdown files with YAML frontmatter (or SQLite), with multi-agent namespaces, search, compression, encryption and Hermes Agent import/export.
