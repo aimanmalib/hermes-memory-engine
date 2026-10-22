@@ -1,6 +1,6 @@
 {
   "name": "hermes-memory-engine",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Markdown-based AI memory system with multi-agent support, LLM-powered compression, and cloud sync",
   "type": "module",
   "main": "./dist/index.cjs",
