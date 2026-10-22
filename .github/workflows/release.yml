@@ -2,6 +2,10 @@ name: Release
 
 # Publishes to npm only when a GitHub Release is published (e.g. tag v0.1.1).
 # Merges and pushes to main never publish.
+#
+# Auth: npm Trusted Publishing (OIDC) — no token to create, store or rotate. Configure once on npmjs.com:
+# package → Settings → Trusted Publisher → GitHub Actions, repository aimanmalib/hermes-memory-engine,
+# workflow release.yml. npm uses OIDC when it is available and falls back to NPM_TOKEN if that secret is set.
 on:
   release:
     types: [published]
@@ -22,6 +26,9 @@ jobs:
           node-version: 22
           registry-url: https://registry.npmjs.org
           cache: npm
+      # Trusted Publishing needs npm >= 11.5.1; Node 22 ships npm 10.
+      - run: npm install -g npm@11
+      - run: npm --version
       - run: npm ci
       - name: Check tag matches package.json version
         run: |
@@ -34,6 +41,7 @@ jobs:
       - run: npm run lint
       - run: npm test
       - run: npm run build
+      # Provenance is automatic with Trusted Publishing; the flag keeps it on for the token fallback.
       - run: npm publish --provenance --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
