@@ -5,7 +5,7 @@ name: Release
 #
 # Auth: npm Trusted Publishing (OIDC) — no token to create, store or rotate. Configure once on npmjs.com:
 # package → Settings → Trusted Publisher → GitHub Actions, repository aimanmalib/hermes-memory-engine,
-# workflow release.yml. npm uses OIDC when it is available and falls back to NPM_TOKEN if that secret is set.
+# workflow release.yml, environment npm, allowed to publish directly. npm uses OIDC when it is available and falls back to NPM_TOKEN if that secret is set.
 on:
   release:
     types: [published]
@@ -16,6 +16,10 @@ permissions:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    # Must match the "Environment name" in the npm Trusted Publisher; the GitHub environment only accepts v* tags.
+    environment:
+      name: npm
+      url: https://www.npmjs.com/package/hermes-memory-engine
     permissions:
       contents: read
       id-token: write # npm provenance
