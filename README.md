@@ -32,7 +32,7 @@ AI agents need persistent, searchable, structured memory. Flat `.md` files are e
 npm install hermes-memory-engine
 ```
 
-Requires Node.js 20 or newer. SQLite support uses the native [`better-sqlite3`](https://github.com/WiseLibs/better-sqlite3) module, which is installed as a dependency.
+Requires Node.js 22.12 or newer. SQLite support uses the native [`better-sqlite3`](https://github.com/WiseLibs/better-sqlite3) module, which is installed as a dependency.
 
 ## Quick Start
 

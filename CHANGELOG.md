@@ -4,6 +4,21 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses [Semantic Versioning](https://semver.org/)
 (0.x: minor versions may contain breaking changes).
 
+## [0.2.0] - 2026-10-23
+
+### Changed
+
+- **Breaking:** requires Node.js 22.12 or newer (`engines.node`). Node 20 reached end of life in April 2026, and
+  commander 15 needs Node 22.12 (#13).
+- commander 13 → 15 for the `hermes-memory` CLI. The CLI has no `--no-*` options, so commander 15's change to their
+  defaults does not apply.
+
+### Internal
+
+- tsup 8 → 9, which brings esbuild 0.28.2 and closes the remaining `npm audit` / Dependabot advisory (esbuild before
+  0.28.1, Windows development server only; it never shipped in the package).
+- CI tests on Node 22 and 24; the Node 20 build-and-smoke job is gone.
+
 ## [0.1.1] - 2026-10-22
 
 ### Fixed

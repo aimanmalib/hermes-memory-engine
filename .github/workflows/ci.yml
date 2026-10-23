@@ -19,9 +19,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # The dev toolchain (vitest 5) needs Node >= 22.12, so Node 20 only
-        # builds and smoke-tests the published output (package engines: >=20).
-        node-version: [20, 22, 24]
+        node-version: [22, 24]
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
@@ -30,11 +28,8 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run typecheck
-        if: matrix.node-version != 20
       - run: npm run lint
-        if: matrix.node-version != 20
       - run: npm test
-        if: matrix.node-version != 20
       - run: npm run build
       - name: Smoke-test built package
         run: |
