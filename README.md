@@ -362,6 +362,17 @@ All commands use the store in `./.hermes-memory`.
 | `hermes-memory compress` | `-a, --agent` · `--threshold <n>` (5) | Demo of compression with a mock LLM; prints results, saves nothing |
 | `hermes-memory --version` / `--help` | | Show version / help |
 
+## How this was built
+
+hermes-memory-engine was built with AI coding assistance (Claude Code) under the direction of its author, Muhammad Aiman.
+
+The evidence that it works is meant to be checkable:
+
+- The test suite, run with `npm test`.
+- CI on Node 22 and 24 for every pull request.
+- The npm package [hermes-memory-engine](https://www.npmjs.com/package/hermes-memory-engine), published from this repository's CI with a provenance attestation.
+- 2 tagged releases, with notes in [CHANGELOG.md](CHANGELOG.md).
+
 ## Contributing
 
 Development needs Node.js 22.12 or newer.
