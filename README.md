@@ -15,16 +15,16 @@
 
 ## Why?
 
-AI agents need persistent, searchable, structured memory. Flat `.md` files are easy to read but hard to query; vector databases are powerful but heavy. This library sits in between:
+AI agents need persistent, searchable, structured memory. Flat `.md` files are easy to read but hard to query; vector databases search well but are heavy to run. This library sits in between:
 
-- **Markdown-first** — one human-readable `.md` file per memory, grouped by agent
-- **Pluggable storage** — `FileBackend` or `SQLiteBackend` behind the same `MemoryStore` API
-- **Multi-agent** — per-agent namespaces, a shared pool with read/write/admin permissions, token-budgeted prompt context
-- **LLM compression** — summarize batches of old memories with any LLM (OpenAI and Claude adapters included)
-- **Sync** — push/pull to a GitHub Gist, S3-compatible storage, or your own HTTP endpoint
-- **Encryption** — AES-256-GCM helpers (scrypt key derivation) to encrypt memory content before you store or sync it
-- **Versioning** — in-memory snapshots with diff and rollback
-- **Integrations** — tool schemas and handlers for OpenAI and Claude tool calling; Hermes Agent import/export
+- **Markdown-first**: one human-readable `.md` file per memory, grouped by agent
+- **Pluggable storage**: `FileBackend` or `SQLiteBackend` behind the same `MemoryStore` API
+- **Multi-agent**: per-agent namespaces, a shared pool with read/write/admin permissions, token-budgeted prompt context
+- **LLM compression**: summarize batches of old memories with any LLM (OpenAI and Claude adapters included)
+- **Sync**: push/pull to a GitHub Gist, S3-compatible storage, or your own HTTP endpoint
+- **Encryption**: AES-256-GCM helpers (scrypt key derivation) to encrypt memory content before you store or sync it
+- **Versioning**: in-memory snapshots with diff and rollback
+- **Integrations**: tool schemas and handlers for OpenAI and Claude tool calling; Hermes Agent import/export
 
 ## Installation
 
@@ -200,7 +200,7 @@ for (const r of results) {
 
 ### Cloud sync
 
-`MemorySync` takes a sync backend and a conflict strategy (`local`, `remote`, `merge` — the default — or `manual`):
+`MemorySync` takes a sync backend and a conflict strategy (`local`, `remote`, `merge`, which is the default, or `manual`):
 
 ```typescript
 import {
@@ -340,10 +340,10 @@ await hermes.syncBidirectional(store, "both");
 ```
 
 **Design principles:**
-- **Pluggable backends** — implement `StorageBackend` or `SyncBackend` to add your own
-- **Small dependency footprint** — runtime dependencies are `better-sqlite3`, `gray-matter` and `commander`; HTTP calls use the built-in `fetch`
-- **Type-safe** — strict TypeScript, full type exports
-- **Human-readable** — markdown files you can inspect, diff and edit by hand
+- **Pluggable backends**: implement `StorageBackend` or `SyncBackend` to add your own
+- **Small dependency footprint**: runtime dependencies are `better-sqlite3`, `gray-matter` and `commander`; HTTP calls use the built-in `fetch`
+- **Type-safe**: strict TypeScript, full type exports
+- **Human-readable**: markdown files you can inspect, diff and edit by hand
 
 Design decisions are recorded in [`docs/adr/`](docs/adr).
 
