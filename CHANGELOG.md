@@ -4,6 +4,25 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses [Semantic Versioning](https://semver.org/)
 (0.x: minor versions may contain breaking changes).
 
+## [0.2.2] - 2026-11-06
+
+Tested with NousResearch/hermes-agent v0.23.0.
+
+### Fixed
+
+- Hermes import no longer splits an entry that contains a `§` in its text (for example "Act 1987 § 13"). Entries are
+  split on the full `\n§\n` delimiter, as Hermes does. Files with a byte-order mark or CRLF line endings are read the
+  way Hermes reads them.
+- `HERMES_HOME` is resolved the way Hermes resolves it: `~` and `$VAR` are expanded, a blank value falls back to the
+  default home, and `HERMES_DATA_DIR_SUFFIX` is honoured.
+- `export-hermes` keeps the original entry order when imported entries share the same timestamp.
+
+### Internal
+
+- A `hermes-compat` CI job runs Hermes Agent's own memory code at each release in `compat/hermes-agent.json` (now
+  v0.23.0) and round-trips files through `import-hermes` / `export-hermes`. Fixtures written by that code back an
+  offline test. Supporting a new Hermes release starts with one line in that file.
+
 ## [0.2.1] - 2026-11-06
 
 ### Changed
