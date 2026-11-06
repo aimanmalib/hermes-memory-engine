@@ -24,12 +24,51 @@ import { homedir } from "node:os";
 import type { MemoryEntry, AgentId } from "../core/types.js";
 import { MemoryStore } from "../core/memory-store.js";
 
+/**
+ * Entry delimiter Hermes writes between entries (`ENTRY_DELIMITER` in
+ * hermes-agent `tools/memory_tool_store.py`). Hermes splits on the whole
+ * delimiter, so a bare "§" inside an entry is ordinary text.
+ */
+const HERMES_ENTRY_DELIMITER = "\n§\n";
+
+/** Expand `$VAR` / `${VAR}` like Python's os.path.expandvars (unknown names stay as written). */
+function expandVars(path: string, env: NodeJS.ProcessEnv): string {
+  return path.replace(/\$(\w+|\{[^}]*\})/g, (match, name: string) => {
+    const key = name.startsWith("{") ? name.slice(1, -1) : name;
+    const value = env[key];
+    return value === undefined ? match : value;
+  });
+}
+
+/** Expand a leading `~` / `~/` like Python's os.path.expanduser (`~user` stays as written). */
+function expandUser(path: string, env: NodeJS.ProcessEnv): string {
+  if (path !== "~" && !path.startsWith("~/") && !path.startsWith("~\\")) return path;
+  return (env.HOME || homedir()) + path.slice(1);
+}
+
+/**
+ * Resolve the Hermes home the way hermes-agent's `get_hermes_home()` does when
+ * no profile override is active: a non-blank `HERMES_HOME` (with `$VAR` and `~`
+ * expanded), else the platform default (`~/.hermes`, `%LOCALAPPDATA%\hermes`
+ * on Windows, both with `HERMES_DATA_DIR_SUFFIX` appended).
+ */
+export function resolveHermesHome(env: NodeJS.ProcessEnv = process.env): string {
+  const fromEnv = (env.HERMES_HOME ?? "").trim();
+  if (fromEnv) return expandUser(expandVars(fromEnv, env), env);
+  const suffix = env.HERMES_DATA_DIR_SUFFIX ?? "";
+  if (process.platform === "win32") {
+    const local = (env.LOCALAPPDATA ?? "").trim();
+    return join(local || join(homedir(), "AppData", "Local"), "hermes" + suffix);
+  }
+  return join(homedir(), ".hermes" + suffix);
+}
+
 /** Hermes memory targets (matches Hermes built-in) */
 export type HermesTarget = "memory" | "user";
 
 /** Config for Hermes integration */
 export interface HermesAdapterConfig {
-  hermesHome?: string; // defaults to ~/.hermes or $HERMES_HOME
+  hermesHome?: string; // defaults to $HERMES_HOME, else ~/.hermes (see resolveHermesHome)
   defaultAgent?: AgentId; // default "hermes-builtin"
   importTags?: string[]; // tags to attach on import, e.g. ["hermes-import"]
 }
@@ -53,9 +92,7 @@ export class HermesMemoryAdapter {
   private hermesMemoriesDir: string;
 
   constructor(config: HermesAdapterConfig = {}) {
-    const home = config.hermesHome || 
-      process.env.HERMES_HOME || 
-      join(homedir(), ".hermes");
+    const home = config.hermesHome || resolveHermesHome();
     
     this.config = {
       hermesHome: home,
@@ -73,8 +110,9 @@ export class HermesMemoryAdapter {
   }
 
   /**
-   * Parse Hermes-format content (entries separated by §) into MemoryEntry[].
-   * Handles the raw file format (no prompt wrapper).
+   * Parse Hermes-format content (entries separated by "\n§\n") into MemoryEntry[].
+   * Handles the raw file format (no prompt wrapper). Like Hermes, a leading BOM
+   * is dropped and CRLF / CR line endings read as LF before splitting.
    */
   parseHermesMemory(content: string, target: HermesTarget): MemoryEntry[] {
     if (!content || !content.trim()) return [];
@@ -83,9 +121,10 @@ export class HermesMemoryAdapter {
     const defaultAgent = this.config.defaultAgent;
     const baseTags = [...this.config.importTags, target];
 
-    // Split on § (section sign) — Hermes uses this as entry delimiter
     const rawEntries = content
-      .split("§")
+      .replace(/^\uFEFF/, "")
+      .replace(/\r\n?/g, "\n")
+      .split(HERMES_ENTRY_DELIMITER)
       .map((e) => e.trim())
       .filter((e) => e.length > 0);
 
@@ -114,13 +153,20 @@ export class HermesMemoryAdapter {
   serializeToHermesFormat(entries: MemoryEntry[], _target: HermesTarget): string {
     if (entries.length === 0) return "";
 
-    // Sort by createdAt for deterministic output (Hermes order is append order)
+    // Hermes order is append order: sort by createdAt, then by the entry's
+    // position in the Hermes file it was imported from. An import creates its
+    // entries within the same millisecond, so without the second key the order
+    // would depend on how the backend happens to list them.
+    const position = (e: MemoryEntry): number => {
+      const idx = e.metadata?.originalIndex;
+      return typeof idx === "number" ? idx : Number.MAX_SAFE_INTEGER;
+    };
     const sorted = [...entries].sort(
-      (a, b) => a.createdAt.getTime() - b.createdAt.getTime()
+      (a, b) => a.createdAt.getTime() - b.createdAt.getTime() || position(a) - position(b)
     );
 
     const lines = sorted.map((e) => e.content.trim()).filter(Boolean);
-    return lines.join("\n§\n");
+    return lines.join(HERMES_ENTRY_DELIMITER);
   }
 
   /**

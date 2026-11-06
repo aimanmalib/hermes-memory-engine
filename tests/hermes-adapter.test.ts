@@ -4,10 +4,10 @@
  */
 
 import { describe, it, expect, beforeEach } from "vitest";
-import { HermesMemoryAdapter } from "../src/integrations/hermes.js";
+import { HermesMemoryAdapter, resolveHermesHome } from "../src/integrations/hermes.js";
 import { MemoryStore } from "../src/core/memory-store.js";
 import { FileBackend } from "../src/core/file-backend.js";
-import { tmpdir } from "node:os";
+import { homedir, tmpdir } from "node:os";
 import { join } from "node:path";
 import { mkdirSync, rmSync } from "node:fs";
 
@@ -123,5 +123,48 @@ User runs three income streams via Hermes.`;
     expect(snap.user).not.toContain("mem fact");
     expect(snap.memory).not.toContain("unrelated fact");
     expect(snap.user).not.toContain("unrelated fact");
+  });
+
+  it("keeps a bare § inside an entry (Hermes splits on the full \\n§\\n delimiter)", () => {
+    const raw = "Copyright Act 1987 § 13 covers fair dealing.\n§\nidea § follow-up § done\n§\n§edges§";
+    const entries = adapter.parseHermesMemory(raw, "memory").map((e) => e.content);
+    expect(entries).toEqual([
+      "Copyright Act 1987 § 13 covers fair dealing.",
+      "idea § follow-up § done",
+      "§edges§",
+    ]);
+  });
+
+  it("keeps Hermes file order for entries created in the same millisecond", () => {
+    const raw = "first\n§\nsecond\n§\nthird";
+    const parsed = adapter.parseHermesMemory(raw, "memory");
+    // A store may list entries in any order; an import gives them one timestamp.
+    const sameTime = new Date(Date.UTC(2026, 10, 6));
+    const listed = [parsed[2], parsed[0], parsed[1]].map((e) => ({ ...e, createdAt: sameTime }));
+    expect(adapter.serializeToHermesFormat(listed, "memory")).toBe(raw);
+  });
+
+  it("reads CRLF and BOM files the way Hermes does", () => {
+    const raw = "\uFEFFfirst\r\nstill first\r\n§\r\nsecond\r§\rthird";
+    const entries = adapter.parseHermesMemory(raw, "user").map((e) => e.content);
+    expect(entries).toEqual(["first\nstill first", "second", "third"]);
+  });
+});
+
+describe("resolveHermesHome", () => {
+  it("uses HERMES_HOME as given", () => {
+    expect(resolveHermesHome({ HERMES_HOME: "/srv/hermes" })).toBe("/srv/hermes");
+  });
+
+  it("expands ~ and $VAR in HERMES_HOME like hermes-agent", () => {
+    expect(resolveHermesHome({ HERMES_HOME: "~/work", HOME: "/home/u" })).toBe("/home/u/work");
+    expect(resolveHermesHome({ HERMES_HOME: "${ROOT}/p/$NAME", ROOT: "/data", NAME: "a" })).toBe("/data/p/a");
+    expect(resolveHermesHome({ HERMES_HOME: "/x/$UNSET_VAR" })).toBe("/x/$UNSET_VAR");
+    expect(resolveHermesHome({ HERMES_HOME: "~other/h", HOME: "/home/u" })).toBe("~other/h");
+  });
+
+  it.skipIf(process.platform === "win32")("falls back to ~/.hermes (+ suffix) when HERMES_HOME is blank", () => {
+    expect(resolveHermesHome({ HERMES_HOME: "  " })).toBe(join(homedir(), ".hermes"));
+    expect(resolveHermesHome({ HERMES_DATA_DIR_SUFFIX: "-dev" })).toBe(join(homedir(), ".hermes-dev"));
   });
 });
