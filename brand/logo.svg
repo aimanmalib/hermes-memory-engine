@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-labelledby="t">
+  <title id="t">Hermes Memory Engine</title>
+  <defs>
+    <linearGradient id="rim" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity=".16"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="tile" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1c1f26"/>
+      <stop offset="1" stop-color="#121418"/>
+    </linearGradient>
+    <!-- same ramp in page units, so the front sheet hides the back sheet without a visible seam -->
+    <linearGradient id="tileU" gradientUnits="userSpaceOnUse" x1="0" y1="16" x2="0" y2="240">
+      <stop offset="0" stop-color="#1c1f26"/>
+      <stop offset="1" stop-color="#121418"/>
+    </linearGradient>
+  </defs>
+  <!-- ink tile shared with MyPII and Codr: the Sasa Teguh open-source family -->
+  <rect x="16" y="16" width="224" height="224" rx="56" fill="url(#tile)"/>
+  <rect x="17" y="17" width="222" height="222" rx="55" fill="none" stroke="url(#rim)" stroke-width="2"/>
+  <!-- mark: stacked Markdown memory files; one remembered line is recalled -->
+  <rect x="86" y="48" width="116" height="132" rx="14" fill="none" stroke="#f4f4f1" stroke-width="12" opacity=".45"/>
+  <rect x="54" y="76" width="116" height="132" rx="14" fill="url(#tileU)" stroke="#f4f4f1" stroke-width="12"/>
+  <rect x="76" y="100" width="40" height="10" rx="5" fill="#f4f4f1" opacity=".55"/>
+  <rect x="76" y="124" width="72" height="16" rx="8" fill="#e8b04a"/>
+  <rect x="76" y="154" width="64" height="10" rx="5" fill="#f4f4f1" opacity=".55"/>
+  <rect x="76" y="176" width="44" height="10" rx="5" fill="#f4f4f1" opacity=".55"/>
+</svg>

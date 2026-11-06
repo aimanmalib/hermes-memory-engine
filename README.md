@@ -1,17 +1,22 @@
-# Hermes Memory Engine
+<p align="center"><img src="https://raw.githubusercontent.com/aimanmalib/hermes-memory-engine/main/brand/logo-512.png" width="112" height="112" alt="Hermes Memory Engine"></p>
 
-[![CI](https://github.com/aimanmalib/hermes-memory-engine/actions/workflows/ci.yml/badge.svg)](https://github.com/aimanmalib/hermes-memory-engine/actions/workflows/ci.yml)
-[![npm](https://img.shields.io/npm/v/hermes-memory-engine)](https://www.npmjs.com/package/hermes-memory-engine)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+<h1 align="center">Hermes Memory Engine</h1>
+
+<p align="center"><a href="https://github.com/aimanmalib/hermes-memory-engine/actions/workflows/ci.yml"><img src="https://github.com/aimanmalib/hermes-memory-engine/actions/workflows/ci.yml/badge.svg" alt="CI"></a> <a href="https://www.npmjs.com/package/hermes-memory-engine"><img src="https://img.shields.io/npm/v/hermes-memory-engine" alt="npm"></a> <a href="https://github.com/aimanmalib/hermes-memory-engine/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT"></a></p>
+
+<p align="center"><b>Memory for AI agents, kept as Markdown files you can read.</b> · <i>Memori untuk ejen AI, disimpan sebagai fail Markdown yang boleh dibaca.</i><br>
+<a href="https://www.npmjs.com/package/hermes-memory-engine">npm</a> · <a href="https://github.com/aimanmalib/hermes-memory-engine/blob/main/CHANGELOG.md">changelog</a> · <a href="https://github.com/aimanmalib/hermes-memory-engine/tree/main/docs/adr">design decisions</a> · Built in Malaysia by <a href="https://aimanmalib.com">Aiman Malib</a></p>
 
 **A markdown-based memory library for AI agents, written in TypeScript.** Memories are plain `.md` files with YAML frontmatter (or rows in SQLite), with building blocks for multi-agent namespaces, LLM-based compression, cloud sync, encryption and snapshots. It can also read and write the `MEMORY.md` / `USER.md` files used by Hermes Agent.
 
 > **Status:** early (0.x). The API may still change before 1.0.
 
+[Bahasa Melayu ↓](#bahasa-melayu)
+
 <p align="center">
-  <img src="docs/demo/demo.gif" alt="Terminal demo: hermes-memory init, add three memories for two agents, search, then list and print the Markdown files on disk" width="900">
+  <img src="https://raw.githubusercontent.com/aimanmalib/hermes-memory-engine/main/docs/demo/demo.gif" alt="Terminal demo: hermes-memory init, add three memories for two agents, search, then list and print the Markdown files on disk" width="900">
 </p>
-<p align="center"><sub>Real output from the published npm package (<code>npm i -g hermes-memory-engine</code>), recorded with <a href="https://github.com/charmbracelet/vhs">VHS</a> from <a href="docs/demo/demo.tape"><code>docs/demo/demo.tape</code></a>. Nothing is sped up.</sub></p>
+<p align="center"><sub>Real output from the published npm package (<code>npm i -g hermes-memory-engine</code>), recorded with <a href="https://github.com/charmbracelet/vhs">VHS</a> from <a href="https://github.com/aimanmalib/hermes-memory-engine/blob/main/docs/demo/demo.tape"><code>docs/demo/demo.tape</code></a>. Nothing is sped up.</sub></p>
 
 ## Why?
 
@@ -345,7 +350,7 @@ await hermes.syncBidirectional(store, "both");
 - **Type-safe**: strict TypeScript, full type exports
 - **Human-readable**: markdown files you can inspect, diff and edit by hand
 
-Design decisions are recorded in [`docs/adr/`](docs/adr).
+Design decisions are recorded in [`docs/adr/`](https://github.com/aimanmalib/hermes-memory-engine/tree/main/docs/adr).
 
 ## CLI Reference
 
@@ -371,7 +376,7 @@ The evidence that it works is meant to be checkable:
 - The test suite, run with `npm test`.
 - CI on Node 22 and 24 for every pull request.
 - The npm package [hermes-memory-engine](https://www.npmjs.com/package/hermes-memory-engine), published from this repository's CI with a provenance attestation.
-- 2 tagged releases, with notes in [CHANGELOG.md](CHANGELOG.md).
+- Tagged releases, with notes in [CHANGELOG.md](https://github.com/aimanmalib/hermes-memory-engine/blob/main/CHANGELOG.md).
 
 ## Contributing
 
@@ -383,15 +388,59 @@ Development needs Node.js 22.12 or newer.
 4. `npm run build`
 5. Open a PR (Conventional Commits, please)
 
-Security issues: see [SECURITY.md](SECURITY.md).
+Security issues: see [SECURITY.md](https://github.com/aimanmalib/hermes-memory-engine/blob/main/SECURITY.md).
 
-## License
+## Bahasa Melayu
 
-[MIT](LICENSE) © Muhammad Aiman
+Hermes Memory Engine ialah pustaka TypeScript untuk memori ejen AI. Setiap memori disimpan sebagai fail `.md` biasa dengan
+frontmatter YAML (atau sebagai baris dalam SQLite), jadi anda boleh membuka, membanding dan menyunting memori ejen dengan tangan.
+Ia juga boleh membaca dan menulis fail `MEMORY.md` / `USER.md` yang dipakai Hermes Agent. Status: awal (0.x), API mungkin
+berubah sebelum 1.0.
 
----
+**Ciri utama:**
+- **Markdown dahulu:** satu fail `.md` untuk setiap memori, dikumpul ikut ejen.
+- **Storan boleh ditukar:** `FileBackend` atau `SQLiteBackend` di belakang API `MemoryStore` yang sama.
+- **Banyak ejen:** ruang nama untuk setiap ejen, kolam kongsi dengan kebenaran baca/tulis/admin, dan konteks prompt ikut bajet token.
+- **Mampatan LLM:** meringkaskan memori lama dengan mana-mana LLM (penyesuai OpenAI dan Claude disertakan).
+- **Segerak:** tolak dan tarik ke GitHub Gist, storan serasi S3, atau titik HTTP anda sendiri.
+- **Penyulitan dan versi:** pembantu AES-256-GCM (kunci diterbitkan dengan scrypt), serta snapshot dalam memori dengan diff dan rollback.
+- **Integrasi:** skema dan pengendali alat untuk panggilan alat OpenAI dan Claude; import dan eksport Hermes Agent.
 
-Built by [Sasa Teguh](https://sasateguh.com) · Malaysia
+**Pasang:**
+
+```bash
+npm install hermes-memory-engine
+```
+
+Perlu Node.js 22.12 atau lebih baharu. Sokongan SQLite memakai modul natif `better-sqlite3`, yang dipasang sebagai kebergantungan.
+
+**Contoh ringkas (CLI):** arahan `hermes-memory` menyimpan memori dalam `./.hermes-memory` di folder semasa.
+
+```bash
+npx hermes-memory init
+npx hermes-memory add "Pengguna suka jawapan ringkas" --tags pilihan --agent ejen-saya
+npx hermes-memory search "ringkas"
+```
+
+**Contoh ringkas (API):**
+
+```typescript
+import { MemoryStore, FileBackend } from "hermes-memory-engine";
+
+const store = new MemoryStore(new FileBackend("./memori-saya"));
+await store.init();
+
+await store.create({ content: "Pengguna suka mod gelap", tags: ["pilihan"], agent: "ejen-saya" });
+const hasil = await store.search({ query: "mod gelap", limit: 10 });
+```
+
+Contoh penuh untuk carian berskor, graf memori, banyak ejen, mampatan, segerak, penyulitan, versi dan integrasi ada dalam
+seksyen bahasa Inggeris di atas. Keputusan reka bentuk direkod dalam
+[`docs/adr/`](https://github.com/aimanmalib/hermes-memory-engine/tree/main/docs/adr).
+
+## Licence
+
+[MIT](https://github.com/aimanmalib/hermes-memory-engine/blob/main/LICENSE) © Muhammad Aiman. Made by [Aiman Malib](https://aimanmalib.com) in Malaysia.
 
 ## Work with Sasa Teguh
 
