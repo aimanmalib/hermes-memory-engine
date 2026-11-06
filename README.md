@@ -304,7 +304,7 @@ const claudeTools = claude.getToolSchemas();
 
 Read and write Hermes Agent's `§`-separated `MEMORY.md` / `USER.md` files.
 
-Tested with [NousResearch/hermes-agent](https://github.com/NousResearch/hermes-agent) v0.23.0. CI runs Hermes Agent's own memory code at every release listed in [`compat/hermes-agent.json`](https://github.com/aimanmalib/hermes-memory-engine/blob/main/compat/hermes-agent.json) and checks that files written by Hermes import unchanged, that exported files read back the same in Hermes, and that `$HERMES_HOME` resolves to the same folder.
+Tested with NousResearch/hermes-agent v0.23.0 ([repository](https://github.com/NousResearch/hermes-agent)). CI runs Hermes Agent's own memory code at every release listed in [`compat/hermes-agent.json`](https://github.com/aimanmalib/hermes-memory-engine/blob/main/compat/hermes-agent.json) and checks that files written by Hermes import unchanged, that exported files read back the same in Hermes, and that `$HERMES_HOME` resolves to the same folder.
 
 
 ```typescript
