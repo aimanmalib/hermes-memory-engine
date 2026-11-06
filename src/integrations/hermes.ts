@@ -153,9 +153,16 @@ export class HermesMemoryAdapter {
   serializeToHermesFormat(entries: MemoryEntry[], _target: HermesTarget): string {
     if (entries.length === 0) return "";
 
-    // Sort by createdAt for deterministic output (Hermes order is append order)
+    // Hermes order is append order: sort by createdAt, then by the entry's
+    // position in the Hermes file it was imported from. An import creates its
+    // entries within the same millisecond, so without the second key the order
+    // would depend on how the backend happens to list them.
+    const position = (e: MemoryEntry): number => {
+      const idx = e.metadata?.originalIndex;
+      return typeof idx === "number" ? idx : Number.MAX_SAFE_INTEGER;
+    };
     const sorted = [...entries].sort(
-      (a, b) => a.createdAt.getTime() - b.createdAt.getTime()
+      (a, b) => a.createdAt.getTime() - b.createdAt.getTime() || position(a) - position(b)
     );
 
     const lines = sorted.map((e) => e.content.trim()).filter(Boolean);

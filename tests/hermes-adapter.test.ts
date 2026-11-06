@@ -135,6 +135,15 @@ User runs three income streams via Hermes.`;
     ]);
   });
 
+  it("keeps Hermes file order for entries created in the same millisecond", () => {
+    const raw = "first\n§\nsecond\n§\nthird";
+    const parsed = adapter.parseHermesMemory(raw, "memory");
+    // A store may list entries in any order; an import gives them one timestamp.
+    const sameTime = new Date(Date.UTC(2026, 10, 6));
+    const listed = [parsed[2], parsed[0], parsed[1]].map((e) => ({ ...e, createdAt: sameTime }));
+    expect(adapter.serializeToHermesFormat(listed, "memory")).toBe(raw);
+  });
+
   it("reads CRLF and BOM files the way Hermes does", () => {
     const raw = "\uFEFFfirst\r\nstill first\r\n§\r\nsecond\r§\rthird";
     const entries = adapter.parseHermesMemory(raw, "user").map((e) => e.content);
