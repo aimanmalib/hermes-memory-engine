@@ -58,3 +58,36 @@ jobs:
         with:
           name: coverage-report
           path: coverage/
+
+  # Tested NousResearch/hermes-agent releases live in compat/hermes-agent.json;
+  # a new release is one line there (plus its fixture folder).
+  hermes-compat-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      tags: ${{ steps.read.outputs.tags }}
+    steps:
+      - uses: actions/checkout@v7
+      - id: read
+        run: echo "tags=$(jq -c .tested compat/hermes-agent.json)" >> "$GITHUB_OUTPUT"
+
+  hermes-compat:
+    name: hermes-compat (${{ matrix.tag }})
+    needs: hermes-compat-matrix
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        tag: ${{ fromJSON(needs.hermes-compat-matrix.outputs.tags) }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - run: npm ci
+      - run: npm run build
+      - name: Check against hermes-agent ${{ matrix.tag }}
+        run: bash scripts/hermes-compat/run.sh "${{ matrix.tag }}"
