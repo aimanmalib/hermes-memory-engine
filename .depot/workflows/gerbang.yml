@@ -1,0 +1,21 @@
+# Same checks as .github/workflows/ci.yml (Node 22), run on Depot CI when dispatched by the maintainer's tooling.
+# workflow_dispatch only, so pushes and PRs never run it twice. No secrets are used.
+name: gerbang
+on: workflow_dispatch
+permissions:
+  contents: read
+jobs:
+  gerbang:
+    runs-on: depot-ubuntu-24.04-4
+    timeout-minutes: 30
+    env:
+      NO_COLOR: "1"
+      CI: "1"
+      TERM: dumb
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm ci
+      - run: npm run typecheck && npm run lint && npm test && npm run build
