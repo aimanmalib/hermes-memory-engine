@@ -7,3 +7,12 @@ coverage/
 *.db
 *.db-journal
 .DS_Store
+
+# local working notes, kept outside the public repo
+/NEXT.md
+/02-DECISIONS.md
+/CLAUDE.md
+/CLAUDE.local.md
+/.claude/
+/PELAN-*.md
+/PASTE-*.md
