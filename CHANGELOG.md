@@ -4,6 +4,11 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses [Semantic Versioning](https://semver.org/)
 (0.x: minor versions may contain breaking changes).
 
+## [Unreleased]
+
+Tested with NousResearch/hermes-agent v0.23.1. The CI compatibility job now covers v0.23.0 and v0.23.1; no library
+changes were needed.
+
 ## [0.2.2] - 2026-11-06
 
 Tested with NousResearch/hermes-agent v0.23.0.
@@ -82,6 +87,8 @@ First release on npm: `MemoryStore` with `FileBackend` (Markdown + YAML frontmat
 namespaces, LLM-based compression, search, encryption, versioning and sync building blocks, Hermes Agent import/export,
 and the `hermes-memory` CLI.
 
+[Unreleased]: https://github.com/aimanmalib/hermes-memory-engine/compare/v0.2.2...HEAD
+[0.2.2]: https://github.com/aimanmalib/hermes-memory-engine/compare/v0.2.1...v0.2.2
 [0.2.1]: https://github.com/aimanmalib/hermes-memory-engine/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/aimanmalib/hermes-memory-engine/compare/v0.1.1...v0.2.0
 [0.1.1]: https://github.com/aimanmalib/hermes-memory-engine/compare/cbd18a7...v0.1.1
