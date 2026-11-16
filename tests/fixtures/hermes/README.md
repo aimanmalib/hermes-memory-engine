@@ -13,7 +13,7 @@ To (re)generate a folder, build the package and run the compatibility check with
 
 ```bash
 npm ci && npm run build
-bash scripts/hermes-compat/run.sh v0.23.0 --write-fixtures
+bash scripts/hermes-compat/run.sh v0.23.1 --write-fixtures
 ```
 
 CI (`hermes-compat` job) runs the same script for every tag in `compat/hermes-agent.json` and fails if a
