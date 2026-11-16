@@ -8,6 +8,7 @@ import { join } from "node:path";
 import { MemoryStore } from "../core/memory-store.js";
 import { FileBackend } from "../core/file-backend.js";
 import { HermesMemoryAdapter } from "../integrations/hermes.js";
+import { serveMcpStdio } from "../integrations/mcp.js";
 import type { LLMProvider } from "../core/memory-compress.js";
 
 // Injected at build time from package.json (see tsup.config.ts)
@@ -162,6 +163,17 @@ program
     results.forEach((r, i) => {
       console.log(`${i + 1}. Ratio: ${(r.ratio * 100).toFixed(0)}%`);
     });
+  });
+
+program
+  .command("mcp")
+  .description("Serve the memory tools to MCP clients over stdio (JSON-RPC on stdout)")
+  .option("-d, --dir <path>", "memory store directory (default: ./.hermes-memory)")
+  .action(async (opts) => {
+    const store = await getStore(opts.dir);
+    // stdout carries protocol messages only; status goes to stderr
+    console.error(`hermes-memory MCP server on stdio (store: ${opts.dir || getDefaultStoreDir()})`);
+    await serveMcpStdio(store, { serverInfo: { name: "hermes-memory", version: __PKG_VERSION__ } });
   });
 
 program.parseAsync(process.argv).catch((err) => {

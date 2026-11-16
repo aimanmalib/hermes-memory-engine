@@ -6,8 +6,23 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-11-16
+
 Tested with NousResearch/hermes-agent v0.23.1. The CI compatibility job now covers v0.23.0 and v0.23.1; no library
 changes were needed.
+
+### Added
+
+- `hermes-memory mcp [--dir <path>]`: a Model Context Protocol server over stdio that exposes `memory_add`,
+  `memory_search` and `memory_list` to MCP clients. It negotiates protocol versions 2024-11-05 to 2025-11-25 and adds
+  no dependencies. Inspired by kitfunso/hippo-memory and iwe-org/iwe, which serve their memory stores to agents over MCP.
+- Library exports `MemoryMcpServer`, `serveMcpStdio`, `MCP_PROTOCOL_VERSIONS` and `JSON_RPC_ERRORS` for running the
+  server in your own process or on another transport.
+
+### Changed
+
+- The Claude adapter now reads its tool schemas and tool handling from the same module as the MCP server. Its output
+  is unchanged.
 
 ## [0.2.2] - 2026-11-06
 
@@ -87,7 +102,8 @@ First release on npm: `MemoryStore` with `FileBackend` (Markdown + YAML frontmat
 namespaces, LLM-based compression, search, encryption, versioning and sync building blocks, Hermes Agent import/export,
 and the `hermes-memory` CLI.
 
-[Unreleased]: https://github.com/aimanmalib/hermes-memory-engine/compare/v0.2.2...HEAD
+[Unreleased]: https://github.com/aimanmalib/hermes-memory-engine/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/aimanmalib/hermes-memory-engine/compare/v0.2.2...v0.3.0
 [0.2.2]: https://github.com/aimanmalib/hermes-memory-engine/compare/v0.2.1...v0.2.2
 [0.2.1]: https://github.com/aimanmalib/hermes-memory-engine/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/aimanmalib/hermes-memory-engine/compare/v0.1.1...v0.2.0
