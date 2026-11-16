@@ -300,6 +300,27 @@ const claude = new ClaudeAdapter({ apiKey: process.env.ANTHROPIC_API_KEY ?? "" }
 const claudeTools = claude.getToolSchemas();
 ```
 
+#### MCP server
+
+`hermes-memory mcp` serves the same three tools (`memory_add`, `memory_search`, `memory_list`, with the same schemas as
+the Claude adapter) to Model Context Protocol clients over stdio. It speaks MCP protocol versions 2024-11-05 through
+2025-11-25 and needs no extra packages. Point a client that launches stdio servers at it, for example:
+
+```json
+{
+  "mcpServers": {
+    "hermes-memory": {
+      "command": "npx",
+      "args": ["-y", "hermes-memory-engine", "mcp", "--dir", "/absolute/path/to/memories"]
+    }
+  }
+}
+```
+
+Use an absolute `--dir`: clients start the server from a working directory you do not control. Only JSON-RPC goes to
+stdout; the start-up line goes to stderr. Embed it in your own process with `serveMcpStdio(store)`, or handle messages
+on another transport with `new MemoryMcpServer(store).handleMessage(message)`.
+
 #### Hermes Agent adapter
 
 Read and write Hermes Agent's `§`-separated `MEMORY.md` / `USER.md` files.
@@ -357,7 +378,7 @@ Design decisions are recorded in [`docs/adr/`](https://github.com/aimanmalib/her
 
 ## CLI Reference
 
-All commands use the store in `./.hermes-memory`.
+All commands use the store in `./.hermes-memory`; `mcp` can point elsewhere with `--dir`.
 
 | Command | Options | Description |
 |---------|---------|-------------|
@@ -368,6 +389,7 @@ All commands use the store in `./.hermes-memory`.
 | `hermes-memory import-hermes` | `--home <path>` | Import Hermes Agent `MEMORY.md` / `USER.md` |
 | `hermes-memory export-hermes` | `--home <path>` | Export to Hermes format (overwrites `MEMORY.md` / `USER.md`) |
 | `hermes-memory compress` | `-a, --agent` · `--threshold <n>` (5) | Demo of compression with a mock LLM; prints results, saves nothing |
+| `hermes-memory mcp` | `-d, --dir <path>` | Serve `memory_add` / `memory_search` / `memory_list` to MCP clients over stdio |
 | `hermes-memory --version` / `--help` | | Show version / help |
 
 ## How this was built
@@ -408,6 +430,8 @@ berubah sebelum 1.0.
 - **Segerak:** tolak dan tarik ke GitHub Gist, storan serasi S3, atau titik HTTP anda sendiri.
 - **Penyulitan dan versi:** pembantu AES-256-GCM (kunci diterbitkan dengan scrypt), serta snapshot dalam memori dengan diff dan rollback.
 - **Integrasi:** skema dan pengendali alat untuk panggilan alat OpenAI dan Claude; import dan eksport Hermes Agent.
+- **Pelayan MCP:** `hermes-memory mcp --dir <folder>` memberi alat `memory_add`, `memory_search` dan `memory_list` kepada
+  klien Model Context Protocol melalui stdio, tanpa pakej tambahan. Contoh tetapan klien ada dalam seksyen "MCP server".
 
 Diuji dengan NousResearch/hermes-agent v0.23.1. CI menjalankan kod memori Hermes Agent sendiri bagi setiap versi dalam
 [`compat/hermes-agent.json`](https://github.com/aimanmalib/hermes-memory-engine/blob/main/compat/hermes-agent.json).

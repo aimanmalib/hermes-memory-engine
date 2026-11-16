@@ -118,10 +118,7 @@
     "baris": {},
     "dijana": {},
     "meta": {},
-    "pendua": {
-      "src/integrations/claude.ts": 11,
-      "src/integrations/openai.ts": 11
-    }
+    "pendua": {}
   },
   "versi": 1
 }

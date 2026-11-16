@@ -17,6 +17,16 @@ export { HttpBackend } from "./sync/http-backend.js";
 export { OpenAIAdapter, type OpenAIAdapterConfig, createOpenAIAdapter } from "./integrations/openai.js";
 export { ClaudeAdapter, type ClaudeAdapterConfig, createClaudeAdapter } from "./integrations/claude.js";
 export type { MemoryToolArgs, MemoryToolResult } from "./integrations/memory-tools.js";
+export {
+  MemoryMcpServer,
+  serveMcpStdio,
+  MCP_PROTOCOL_VERSIONS,
+  JSON_RPC_ERRORS,
+  type McpServerInfo,
+  type McpServerOptions,
+  type McpStdioOptions,
+  type JsonRpcResponse,
+} from "./integrations/mcp.js";
 
 // Hermes Agent integration (Phase 5.1)
 export {
