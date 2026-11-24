@@ -6,6 +6,9 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+Tested with NousResearch/hermes-agent v0.23.3. The CI compatibility job now covers v0.23.0, v0.23.1 and
+v0.23.3; no library changes were needed.
+
 ## [0.3.0] - 2026-11-16
 
 Tested with NousResearch/hermes-agent v0.23.1. The CI compatibility job now covers v0.23.0 and v0.23.1; no library

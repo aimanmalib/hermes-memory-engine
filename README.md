@@ -325,7 +325,7 @@ on another transport with `new MemoryMcpServer(store).handleMessage(message)`.
 
 Read and write Hermes Agent's `§`-separated `MEMORY.md` / `USER.md` files.
 
-Tested with NousResearch/hermes-agent v0.23.1 ([repository](https://github.com/NousResearch/hermes-agent)). CI runs Hermes Agent's own memory code at every release listed in [`compat/hermes-agent.json`](https://github.com/aimanmalib/hermes-memory-engine/blob/main/compat/hermes-agent.json) and checks that files written by Hermes import unchanged, that exported files read back the same in Hermes, and that `$HERMES_HOME` resolves to the same folder.
+Tested with NousResearch/hermes-agent v0.23.3 ([repository](https://github.com/NousResearch/hermes-agent)). CI runs Hermes Agent's own memory code at every release listed in [`compat/hermes-agent.json`](https://github.com/aimanmalib/hermes-memory-engine/blob/main/compat/hermes-agent.json) and checks that files written by Hermes import unchanged, that exported files read back the same in Hermes, and that `$HERMES_HOME` resolves to the same folder.
 
 
 ```typescript
@@ -433,7 +433,7 @@ berubah sebelum 1.0.
 - **Pelayan MCP:** `hermes-memory mcp --dir <folder>` memberi alat `memory_add`, `memory_search` dan `memory_list` kepada
   klien Model Context Protocol melalui stdio, tanpa pakej tambahan. Contoh tetapan klien ada dalam seksyen "MCP server".
 
-Diuji dengan NousResearch/hermes-agent v0.23.1. CI menjalankan kod memori Hermes Agent sendiri bagi setiap versi dalam
+Diuji dengan NousResearch/hermes-agent v0.23.3. CI menjalankan kod memori Hermes Agent sendiri bagi setiap versi dalam
 [`compat/hermes-agent.json`](https://github.com/aimanmalib/hermes-memory-engine/blob/main/compat/hermes-agent.json).
 
 **Pasang:**
